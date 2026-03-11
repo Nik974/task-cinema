@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:18
+    container_name: cinema-container
+    environment:
+      POSTGRES_DB: cinema-db
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:

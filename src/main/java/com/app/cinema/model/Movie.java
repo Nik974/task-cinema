@@ -28,8 +28,8 @@ public class Movie {
     private String description;
 
     @NotNull
-    @Column(name = "movie_duration", nullable = false)
-    private Duration duration;
+    @Column(name = "movie_duration_minutes", nullable = false)
+    private int durationMinutes;
 
     @NotNull
     @Column(name = "movie_release_date")

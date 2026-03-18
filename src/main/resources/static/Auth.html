@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cinema — Logowanie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #141414;
+            --border: #242424;
+            --border-focus: #c8a96e;
+            --accent: #c8a96e;
+            --accent-dark: #a8893e;
+            --text: #f0ece4;
+            --text-muted: #6b6560;
+            --text-sub: #9a9590;
+            --error: #e05c5c;
+            --success: #5cad7f;
+            --radius: 6px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background-image:
+                    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,169,110,0.07) 0%, transparent 60%);
+        }
+
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 44px 40px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px;
+            color: var(--accent);
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            letter-spacing: 0.12em;
+            color: var(--text);
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .card-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .card-sub a {
+            color: var(--accent);
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .card-sub a:hover { opacity: 0.75; }
+
+
+        .alert {
+            padding: 11px 14px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.error  { background: rgba(224,92,92,.10); border: 1px solid rgba(224,92,92,.28); color: var(--error); }
+        .alert.success{ background: rgba(92,173,127,.10); border: 1px solid rgba(92,173,127,.28); color: var(--success); }
+        .alert.show   { display: block; }
+
+        .field { margin-bottom: 18px; }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            margin-bottom: 7px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.10);
+        }
+
+        .field input.invalid {
+            border-color: var(--error);
+        }
+
+        .field-error {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+        .field-error.show { display: block; }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--accent);
+            color: #0d0d0d;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+        }
+
+        .btn:hover:not(:disabled)  { background: var(--accent-dark); }
+        .btn:active:not(:disabled) { transform: scale(0.99); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            color: var(--border);
+        }
+        .separator::before, .separator::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .separator span { font-size: 11px; color: var(--text-muted); }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- Logo -->
+    <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+            <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/>
+            <line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>
+        </svg>
+        <span class="logo-text">CINEMA</span>
+    </div>
+
+    <!-- ── Panel logowania ── -->
+    <div id="loginPanel" class="panel active">
+        <h1 class="card-title">Witaj z powrotem</h1>
+        <p class="card-sub">
+            Nie masz konta? <a onclick="showRegister()">Zarejestruj się</a>
+        </p>
+
+        <div id="loginAlert" class="alert error"></div>
+
+        <div class="field">
+            <label>Nazwa użytkownika</label>
+            <input id="loginUsername" type="text" placeholder="jan.kowalski" autocomplete="username" />
+            <div class="field-error" id="loginUsernameErr"></div>
+        </div>
+
+        <div class="field">
+            <label>Hasło</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <div class="field-error" id="loginPasswordErr"></div>
+        </div>
+
+        <button class="btn" id="loginBtn" onclick="handleLogin()">Zaloguj się</button>
+    </div>
+
+    <!-- ── Panel rejestracji ── -->
+    <div id="registerPanel" class="panel">
+        <h1 class="card-title">Utwórz konto</h1>
+        <p class="card-sub">
+            Masz już konto? <a onclick="showLogin()">Zaloguj się</a>
+        </p>
+
+        <div id="registerAlert" class="alert error"></div>
+
+        <div class="field">
+            <label>Nazwa użytkownika</label>
+            <input id="regUsername" type="text" placeholder="jan.kowalski" autocomplete="username" />
+            <div class="field-error" id="regUsernameErr"></div>
+        </div>
+
+        <div class="field">
+            <label>Email</label>
+            <input id="regEmail" type="email" placeholder="jan@wp.pl" autocomplete="email" />
+            <div class="field-error" id="regEmailErr"></div>
+        </div>
+
+        <div class="field">
+            <label>Hasło</label>
+            <input id="regPassword" type="password" placeholder="Minimum 6 znaków" autocomplete="new-password" />
+            <div class="field-error" id="regPasswordErr"></div>
+        </div>
+
+        <div class="field">
+            <label>Potwierdź hasło</label>
+            <input id="regConfirm" type="password" placeholder="••••••••" autocomplete="new-password" />
+            <div class="field-error" id="regConfirmErr"></div>
+        </div>
+
+        <button class="btn" id="registerBtn" onclick="handleRegister()">Zarejestruj się</button>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:8080/api';
+
+    function showLogin() {
+        document.getElementById('loginPanel').classList.add('active');
+        document.getElementById('registerPanel').classList.remove('active');
+        clearErrors();
+    }
+
+    function showRegister() {
+        document.getElementById('registerPanel').classList.add('active');
+        document.getElementById('loginPanel').classList.remove('active');
+        clearErrors();
+    }
+
+    function clearErrors() {
+        document.querySelectorAll('.alert').forEach(el => {
+            el.classList.remove('show', 'error', 'success');
+            el.textContent = '';
+        });
+        document.querySelectorAll('.field-error').forEach(el => {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+        document.querySelectorAll('input').forEach(el => el.classList.remove('invalid'));
+    }
+
+    function showAlert(id, message, type = 'error') {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.className = `alert ${type} show`;
+    }
+
+    function showFieldError(id, message) {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.classList.add('show');
+        // Podświetl input
+        const input = el.previousElementSibling;
+        if (input && input.tagName === 'INPUT') input.classList.add('invalid');
+    }
+
+    function setLoading(btnId, loading, text) {
+        const btn = document.getElementById(btnId);
+        btn.disabled = loading;
+        btn.textContent = loading ? '...' : text;
+    }
+
+
+    async function handleLogin() {
+        clearErrors();
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        // Walidacja
+        let valid = true;
+        if (!username) { showFieldError('loginUsernameErr', 'Podaj nazwę użytkownika'); valid = false; }
+        if (!password) { showFieldError('loginPasswordErr', 'Podaj hasło'); valid = false; }
+        if (!valid) return;
+
+        setLoading('loginBtn', true, 'Zaloguj się');
+        try {
+            const res = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                showAlert('loginAlert', msg || 'Nieprawidłowe dane logowania');
+                return;
+            }
+
+            const data = await res.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('role', data.role);
+
+            window.location.href = 'index.html';
+
+        } catch {
+            showAlert('loginAlert', 'Błąd połączenia z serwerem');
+        } finally {
+            setLoading('loginBtn', false, 'Zaloguj się');
+        }
+    }
+
+    async function handleRegister() {
+        clearErrors();
+        const username = document.getElementById('regUsername').value.trim();
+        const email    = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirm  = document.getElementById('regConfirm').value;
+
+        // Walidacja
+        let valid = true;
+        if (username.length < 3) { showFieldError('regUsernameErr', 'Minimum 3 znaki'); valid = false; }
+        if (!email.includes('@')) { showFieldError('regEmailErr', 'Niepoprawny email'); valid = false; }
+        if (password.length < 8) { showFieldError('regPasswordErr', 'Minimum 8 znaków'); valid = false; }
+        if (password !== confirm) { showFieldError('regConfirmErr', 'Hasła nie są takie same'); valid = false; }
+        if (!valid) return;
+
+        setLoading('registerBtn', true, 'Zarejestruj się');
+        try {
+            const res = await fetch(`${API}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password }),
+            });
+
+            if (!res.ok) {
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errors = await res.json();
+                    if (errors.username) showFieldError('regUsernameErr', errors.username);
+                    if (errors.email)    showFieldError('regEmailErr', errors.email);
+                    if (errors.password) showFieldError('regPasswordErr', errors.password);
+                } else {
+                    showAlert('registerAlert', await res.text());
+                }
+                return;
+            }
+
+            showAlert('registerAlert', 'Konto utworzone! Możesz się zalogować.', 'success');
+            setTimeout(() => {
+                showLogin();
+                document.getElementById('loginUsername').value = username;
+            }, 1500);
+
+        } catch {
+            showAlert('registerAlert', 'Błąd połączenia z serwerem');
+        } finally {
+            setLoading('registerBtn', false, 'Zarejestruj się');
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        const loginActive = document.getElementById('loginPanel').classList.contains('active');
+        if (loginActive) handleLogin();
+        else handleRegister();
+    });
+
+    // jeśli już zalogowany - przekieruj od razu
+    if (localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+</body>
+</html>

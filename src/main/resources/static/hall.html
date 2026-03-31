@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cinema — Wybierz miejsca</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --surface: #141414; --border: #242424;
+      --accent: #c8a96e; --accent-dark: #a8893e;
+      --text: #f0ece4; --text-muted: #6b6560; --text-sub: #9a9590;
+      --error: #e05c5c; --success: #5cad7f; --radius: 6px;
+      --seat-free: #1e2a1e; --seat-free-border: #2d4a2d;
+      --seat-taken: #1a1a1a; --seat-taken-border: #2a2a2a;
+      --seat-selected: #c8a96e; --seat-selected-border: #a8893e;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,13,0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px; display: flex; align-items: center;
+      justify-content: space-between; height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo svg { color: var(--accent); }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; letter-spacing: 0.1em; color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero { padding: 40px 40px 32px; border-bottom: 1px solid var(--border); }
+    .hero-back { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: color 0.2s; cursor: pointer; }
+    .hero-back:hover { color: var(--accent); }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 400; color: var(--text); margin-bottom: 4px; }
+    .hero-meta { font-size: 13px; color: var(--text-muted); }
+
+    main { padding: 40px; display: flex; gap: 40px; align-items: flex-start; max-width: 1100px; margin: 0 auto; }
+
+    /* Plan sali */
+    .hall-section { flex: 1; }
+    .screen { background: linear-gradient(to bottom, rgba(200,169,110,0.3), transparent); height: 6px; border-radius: 3px; margin-bottom: 32px; }
+    .screen-label { text-align: center; font-size: 11px; font-family: monospace; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+
+    .seats-grid { display: flex; flex-direction: column; gap: 8px; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row-label { font-size: 11px; font-family: monospace; color: var(--text-muted); width: 20px; text-align: right; flex-shrink: 0; }
+    .seats { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .seat {
+      width: 32px; height: 32px; border-radius: 4px 4px 2px 2px;
+      border: 1px solid var(--seat-free-border);
+      background: var(--seat-free);
+      cursor: pointer; font-size: 10px; font-family: monospace;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.4);
+      transition: all 0.15s;
+    }
+    .seat:hover:not(.taken):not(.selected) { border-color: var(--accent); background: rgba(200,169,110,0.1); }
+    .seat.taken { background: var(--seat-taken); border-color: var(--seat-taken-border); cursor: not-allowed; color: #333; }
+    .seat.selected { background: var(--seat-selected); border-color: var(--seat-selected-border); color: #0d0d0d; font-weight: 600; }
+
+    /* Legenda */
+    .legend { display: flex; gap: 20px; margin-top: 24px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+    .legend-dot { width: 16px; height: 16px; border-radius: 3px; }
+
+    /* Panel boczny */
+    .sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 80px; }
+    .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+    .summary-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; margin-bottom: 20px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; color: var(--text-sub); }
+    .summary-row.total { color: var(--text); font-size: 16px; font-weight: 500; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .summary-seats { font-size: 12px; color: var(--text-muted); font-family: monospace; margin: 12px 0; min-height: 20px; }
+
+    .alert { padding: 11px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 16px; display: none; }
+    .alert.error   { background: rgba(224,92,92,.08); border: 1px solid rgba(224,92,92,.2); color: var(--error); }
+    .alert.success { background: rgba(92,173,127,.08); border: 1px solid rgba(92,173,127,.2); color: var(--success); }
+    .alert.show { display: block; }
+
+    .btn-reserve {
+      width: 100%; padding: 14px; background: var(--accent); color: #0d0d0d;
+      border: none; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-reserve:hover:not(:disabled) { background: var(--accent-dark); }
+    .btn-reserve:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .loading { color: var(--text-muted); font-family: monospace; font-size: 13px; padding: 40px 0; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+      <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+    </svg>
+    <span class="nav-logo-text">CINEMA</span>
+  </a>
+  <div class="nav-right">
+    <span style="font-size:13px;color:var(--text-sub)" id="navUsername"></span>
+    <a href="reservations.html" class="nav-btn">Moje rezerwacje</a>
+    <a href="admin.html" class="nav-btn" id="adminBtn" style="display:none">Panel admina</a>
+    <button class="nav-btn" onclick="logout()">Wyloguj</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <a class="hero-back" id="backBtn" href="#">← Powrót do seansów</a>
+  <h1 class="hero-title" id="heroTitle">Wybierz miejsca</h1>
+  <p class="hero-meta" id="heroMeta"></p>
+</div>
+
+<main>
+  <!-- Plan sali -->
+  <div class="hall-section">
+    <div id="loadingMsg" class="loading">Ładowanie planu sali...</div>
+    <div id="hallPlan" style="display:none">
+      <div class="screen-label">Ekran</div>
+      <div class="screen"></div>
+      <div class="seats-grid" id="seatsGrid"></div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--seat-free);border:1px solid var(--seat-free-border)"></div>
+          Wolne
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--seat-selected);border:1px solid var(--seat-selected-border)"></div>
+          Wybrane
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--seat-taken);border:1px solid var(--seat-taken-border)"></div>
+          Zajęte
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Podsumowanie -->
+  <div class="sidebar">
+    <div class="summary-card">
+      <div class="summary-title">Podsumowanie</div>
+      <div class="alert" id="alert"></div>
+      <div class="summary-row"><span>Seans</span><span id="sumTime">—</span></div>
+      <div class="summary-row"><span>Sala</span><span id="sumHall">—</span></div>
+      <div class="summary-row"><span>Cena / bilet</span><span id="sumPrice">—</span></div>
+      <div class="summary-seats" id="sumSeats">Nie wybrano miejsc</div>
+      <div class="summary-row total">
+        <span>Razem</span>
+        <span id="sumTotal">0.00 zł</span>
+      </div>
+      <button class="btn-reserve" id="btnReserve" disabled onclick="makeReservation()">
+        Zarezerwuj
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API   = 'http://localhost:8080/api';
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'auth.html';
+
+  document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+  if (localStorage.getItem('role') === 'ADMIN') {
+    document.getElementById('adminBtn').style.display = 'inline-block';
+  }
+  if (localStorage.getItem('role') === 'ADMIN') {
+    document.getElementById('btnReserve').style.display = 'none';
+  }
+
+  const params      = new URLSearchParams(window.location.search);
+  const screeningId = params.get('screeningId');
+  if (!screeningId) window.location.href = 'index.html';
+
+  const hdrs = () => ({ 'Authorization': `Bearer ${token}` });
+  const hdrsJson = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+  let selectedSeats = []; // [{id, rowNumber, seatNumber}]
+  let ticketPrice   = 0;
+  let allSeats      = [];
+  let takenSeatIds  = new Set();
+  let movieId       = null;
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function load() {
+    try {
+      // Pobierz seanse żeby znaleźć ten konkretny
+      const screeningsRes = await fetch(`${API}/screenings`, { headers: hdrs() });
+      if (!screeningsRes.ok) throw new Error('Błąd pobierania seansu');
+      const screenings = await screeningsRes.json();
+      const screening  = screenings.find(s => s.id == screeningId);
+      if (!screening) throw new Error('Seans nie istnieje');
+
+      movieId = screening.movieId;
+      ticketPrice = parseFloat(screening.price);
+
+      // Link powrotu
+      document.getElementById('backBtn').href = `screenings.html?movieId=${movieId}`;
+
+      // Pobierz film i salę równolegle
+      const [movieRes, hallRes] = await Promise.all([
+        fetch(`${API}/movies/${screening.movieId}`, { headers: hdrs() }),
+        fetch(`${API}/halls/${screening.hallId}`,   { headers: hdrs() })
+      ]);
+
+      const movie = await movieRes.json();
+      const hall  = await hallRes.json();
+
+      // Hero
+      const startTime = new Date(screening.startTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('heroTitle').textContent = movie.title;
+      document.getElementById('heroMeta').textContent  = `${startTime} · ${hall.name}`;
+      document.title = `Cinema — ${movie.title}`;
+
+      // Podsumowanie
+      document.getElementById('sumTime').textContent  = startTime;
+      document.getElementById('sumHall').textContent  = hall.name;
+      document.getElementById('sumPrice').textContent = `${ticketPrice.toFixed(2)} zł`;
+
+      // Pobierz miejsca sali
+      const seatsRes = await fetch(`${API}/halls/${screening.hallId}/seats`, { headers: hdrs() });
+      if (!seatsRes.ok) throw new Error('Błąd pobierania miejsc');
+      allSeats = await seatsRes.json();
+
+      // Pobierz zajęte miejsca dla tego seansu
+      const takenRes = await fetch(`${API}/screenings/${screeningId}/taken-seats`, { headers: hdrs() });
+      if (takenRes.ok) {
+        const taken = await takenRes.json();
+        takenSeatIds = new Set(taken.map(s => s.id));
+      }
+
+      renderHall(hall);
+
+    } catch (err) {
+      document.getElementById('loadingMsg').textContent = err.message || 'Błąd ładowania';
+    }
+  }
+
+  function renderHall(hall) {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('hallPlan').style.display   = 'block';
+
+    const grid = document.getElementById('seatsGrid');
+    grid.innerHTML = '';
+
+    // Grupuj miejsca po rzędach
+    const rows = {};
+    allSeats.forEach(seat => {
+      if (!rows[seat.rowNumber]) rows[seat.rowNumber] = [];
+      rows[seat.rowNumber].push(seat);
+    });
+
+    Object.keys(rows).sort((a,b) => a-b).forEach(rowNum => {
+      const rowEl    = document.createElement('div');
+      rowEl.className = 'row';
+
+      const label = document.createElement('div');
+      label.className = 'row-label';
+      label.textContent = rowNum;
+      rowEl.appendChild(label);
+
+      const seatsEl = document.createElement('div');
+      seatsEl.className = 'seats';
+
+      rows[rowNum].sort((a,b) => a.seatNumber - b.seatNumber).forEach(seat => {
+        const btn = document.createElement('button');
+        btn.className = 'seat';
+        btn.textContent = seat.seatNumber;
+        btn.title = `Rząd ${seat.rowNumber}, Miejsce ${seat.seatNumber}`;
+
+        if (takenSeatIds.has(seat.id)) {
+          btn.classList.add('taken');
+          btn.disabled = true;
+        } else {
+          btn.onclick = () => toggleSeat(seat, btn);
+        }
+        seatsEl.appendChild(btn);
+      });
+
+      rowEl.appendChild(seatsEl);
+      grid.appendChild(rowEl);
+    });
+  }
+
+  function toggleSeat(seat, btn) {
+    const idx = selectedSeats.findIndex(s => s.id === seat.id);
+    if (idx === -1) {
+      selectedSeats.push(seat);
+      btn.classList.add('selected');
+    } else {
+      selectedSeats.splice(idx, 1);
+      btn.classList.remove('selected');
+    }
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const total = selectedSeats.length * ticketPrice;
+    document.getElementById('sumTotal').textContent =
+      `${total.toFixed(2)} zł`;
+    document.getElementById('sumSeats').textContent =
+      selectedSeats.length
+        ? selectedSeats.map(s => `R${s.rowNumber}/M${s.seatNumber}`).join(', ')
+        : 'Nie wybrano miejsc';
+    document.getElementById('btnReserve').disabled = selectedSeats.length === 0;
+  }
+
+  async function makeReservation() {
+    if (!selectedSeats.length) return;
+
+    document.getElementById('btnReserve').disabled = true;
+
+    try {
+      const res = await fetch(`${API}/reservations`, {
+        method: 'POST',
+        headers: hdrsJson(),
+        body: JSON.stringify({
+          screeningId: parseInt(screeningId),
+          seatIds: selectedSeats.map(s => s.id)
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        showAlert(err || 'Błąd rezerwacji', 'error');
+        document.getElementById('btnReserve').disabled = false;
+        return;
+      }
+
+      showAlert('Rezerwacja złożona! Sprawdź status w "Moje rezerwacje".', 'success');
+
+      // Oznacz wybrane miejsca jako zajęte
+      selectedSeats.forEach(seat => {
+        takenSeatIds.add(seat.id);
+        const btns = document.querySelectorAll('.seat.selected');
+        btns.forEach(btn => { btn.classList.remove('selected'); btn.classList.add('taken'); btn.disabled = true; });
+      });
+      selectedSeats = [];
+      updateSummary();
+
+    } catch {
+      showAlert('Błąd połączenia z serwerem', 'error');
+      document.getElementById('btnReserve').disabled = false;
+    }
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('alert');
+    el.textContent = msg;
+    el.className = `alert ${type} show`;
+    if (type === 'error') setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cinema — Seanse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --surface: #141414; --border: #242424;
+      --accent: #c8a96e; --accent-dark: #a8893e;
+      --text: #f0ece4; --text-muted: #6b6560; --text-sub: #9a9590;
+      --error: #e05c5c; --success: #5cad7f; --radius: 6px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,13,0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px; display: flex; align-items: center;
+      justify-content: space-between; height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo svg { color: var(--accent); }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; letter-spacing: 0.1em; color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero { padding: 60px 40px 40px; border-bottom: 1px solid var(--border); background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,169,110,0.06) 0%, transparent 60%); }
+    .hero-label { font-size: 11px; font-family: monospace; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .hero-back { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: color 0.2s; }
+    .hero-back:hover { color: var(--accent); }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(24px, 4vw, 40px); font-weight: 400; color: var(--text); margin-bottom: 6px; }
+    .hero-meta { font-size: 13px; color: var(--text-muted); }
+
+    main { padding: 40px; max-width: 800px; margin: 0 auto; }
+
+    .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 13px; margin-bottom: 20px; display: none; }
+    .alert.error { background: rgba(224,92,92,.08); border: 1px solid rgba(224,92,92,.2); color: var(--error); }
+    .alert.show { display: block; }
+
+    .section-label { font-size: 11px; font-family: monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+
+    .screening-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      margin-bottom: 10px; cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .screening-card:hover { border-color: var(--accent); transform: translateX(4px); }
+
+    .screening-time { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); margin-bottom: 4px; }
+    .screening-date { font-size: 12px; color: var(--text-muted); font-family: monospace; }
+    .screening-hall { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+    .screening-price { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--accent); text-align: right; }
+    .screening-price-label { font-size: 11px; color: var(--text-muted); font-family: monospace; text-transform: uppercase; }
+
+    .skeleton-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 10px; }
+    .skeleton-line { background: #1a1a1a; border-radius: 2px; animation: pulse 1.5s ease infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .empty { text-align: center; padding: 60px 0; color: var(--text-muted); display: none; }
+    .empty.show { display: block; }
+    .empty p { font-family: monospace; font-size: 13px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+      <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+    </svg>
+    <span class="nav-logo-text">CINEMA</span>
+  </a>
+  <div class="nav-right">
+    <span style="font-size:13px;color:var(--text-sub)" id="navUsername"></span>
+    <a href="reservations.html" class="nav-btn">Moje rezerwacje</a>
+    <a href="admin.html" class="nav-btn" id="adminBtn" style="display:none">Panel admina</a>
+    <button class="nav-btn" onclick="logout()">Wyloguj</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <a class="hero-back" href="index.html">← Powrót do repertuaru</a>
+  <p class="hero-label">Wybierz seans</p>
+  <h1 class="hero-title" id="movieTitle">Ładowanie...</h1>
+  <p class="hero-meta" id="movieMeta"></p>
+</div>
+
+<main>
+  <div class="alert error" id="alert"></div>
+  <p class="section-label">Dostępne seanse</p>
+  <div id="screeningsList"></div>
+  <div class="empty" id="empty">
+    <p>Brak dostępnych seansów dla tego filmu</p>
+  </div>
+</main>
+
+<script>
+  const API   = 'http://localhost:8080/api';
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'auth.html';
+
+  document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+  if (localStorage.getItem('role') === 'ADMIN') {
+    document.getElementById('adminBtn').style.display = 'inline-block';
+  }
+
+  // Pobierz movieId z URL: screenings.html?movieId=5
+  const params  = new URLSearchParams(window.location.search);
+  const movieId = params.get('movieId');
+  if (!movieId) window.location.href = 'index.html';
+
+  const hdrs = () => ({ 'Authorization': `Bearer ${token}` });
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Ładuj dane filmu i seansów równolegle
+  async function load() {
+    const list = document.getElementById('screeningsList');
+
+    // Skeleton
+    list.innerHTML = Array.from({ length: 3 }).map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-line" style="height:18px;width:30%;margin-bottom:8px"></div>
+        <div class="skeleton-line" style="height:12px;width:50%"></div>
+      </div>`).join('');
+
+    try {
+      // Pobierz film i seanse równolegle
+      const [movieRes, screeningsRes] = await Promise.all([
+        fetch(`${API}/movies/${movieId}`, { headers: hdrs() }),
+        fetch(`${API}/screenings`, { headers: hdrs() })
+      ]);
+
+      if (!movieRes.ok) throw new Error('Nie znaleziono filmu');
+      if (!screeningsRes.ok) throw new Error('Błąd pobierania seansów');
+
+      const movie     = await movieRes.json();
+      const allScreenings = await screeningsRes.json();
+
+      // Filtruj seansów dla tego filmu
+      const screenings = allScreenings.filter(s => s.movieId == movieId);
+
+      // Ustaw tytuł
+      document.getElementById('movieTitle').textContent = movie.title;
+      document.getElementById('movieMeta').textContent =
+        `${movie.durationMinutes} min · ${movie.releaseDate || ''}`;
+      document.title = `Cinema — ${movie.title}`;
+
+      renderScreenings(screenings);
+
+    } catch (err) {
+      list.innerHTML = '';
+      const alert = document.getElementById('alert');
+      alert.textContent = err.message || 'Błąd ładowania danych';
+      alert.classList.add('show');
+    }
+  }
+
+  function renderScreenings(screenings) {
+    const list  = document.getElementById('screeningsList');
+    const empty = document.getElementById('empty');
+
+    if (!screenings.length) {
+      list.innerHTML = '';
+      empty.classList.add('show');
+      return;
+    }
+
+    // Sortuj po czasie rozpoczęcia
+    screenings.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    list.innerHTML = screenings.map(s => {
+      const start = new Date(s.startTime);
+      const end   = new Date(s.endTime);
+      const time  = start.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+      const date  = start.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
+      const endTime = end.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+      return `
+        <div class="screening-card" onclick="goToHall(${s.id})">
+          <div>
+            <div class="screening-time">${time} — ${endTime}</div>
+            <div class="screening-date">${date}</div>
+            <div class="screening-hall">Sala #${s.hallId}</div>
+          </div>
+          <div>
+            <div class="screening-price">${parseFloat(s.price).toFixed(2)} zł</div>
+            <div class="screening-price-label">bilet</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function goToHall(screeningId) {
+    window.location.href = `hall.html?screeningId=${screeningId}`;
+  }
+
+  function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+
+  load();
+</script>
+</body>
+</html>

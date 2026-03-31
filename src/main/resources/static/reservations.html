@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cinema — Moje rezerwacje</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0d0d0d; --surface: #141414; --border: #242424;
+            --accent: #c8a96e; --accent-dark: #a8893e;
+            --text: #f0ece4; --text-muted: #6b6560; --text-sub: #9a9590;
+            --error: #e05c5c; --success: #5cad7f; --warning: #f59e0b;
+            --radius: 6px;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        /* Navbar */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13,13,13,0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px; display: flex; align-items: center;
+            justify-content: space-between; height: 60px;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo svg { color: var(--accent); }
+        .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; letter-spacing: 0.1em; color: var(--text); }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-username { font-size: 13px; color: var(--text-sub); }
+        .nav-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Hero */
+        .hero {
+            padding: 60px 40px 40px;
+            border-bottom: 1px solid var(--border);
+            background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,169,110,0.06) 0%, transparent 60%);
+        }
+        .hero-label { font-size: 11px; font-family: monospace; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 42px); font-weight: 400; color: var(--text); }
+
+        /* Main */
+        main { padding: 40px; max-width: 800px; margin: 0 auto; }
+
+        /* Alert */
+        .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 13px; margin-bottom: 20px; display: none; }
+        .alert.error   { background: rgba(224,92,92,.08); border: 1px solid rgba(224,92,92,.2); color: var(--error); }
+        .alert.success { background: rgba(92,173,127,.08); border: 1px solid rgba(92,173,127,.2); color: var(--success); }
+        .alert.show { display: block; }
+
+        /* Skeleton */
+        .skeleton-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 10px; }
+        .skeleton-line { background: #1a1a1a; border-radius: 2px; animation: pulse 1.5s ease infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Karta rezerwacji */
+        .reservation-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+            animation: fadeIn 0.3s ease both;
+        }
+        .reservation-card:hover { border-color: #333; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+        .card-movie { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--text); margin-bottom: 4px; }
+        .card-meta { font-size: 12px; color: var(--text-muted); font-family: monospace; display: flex; gap: 16px; flex-wrap: wrap; }
+        .card-meta span { display: flex; align-items: center; gap: 5px; }
+
+        .status-badge { font-size: 11px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+        .status-PENDING   { background: rgba(245,158,11,.12); color: var(--warning); border: 1px solid rgba(245,158,11,.2); }
+        .status-CONFIRMED { background: rgba(92,173,127,.12); color: var(--success); border: 1px solid rgba(92,173,127,.2); }
+        .status-CANCELLED { background: rgba(100,100,100,.10); color: var(--text-muted); border: 1px solid #222; }
+
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 12px; }
+        .card-seats { font-size: 12px; color: var(--text-sub); font-family: monospace; }
+        .card-id { font-size: 11px; color: #333; font-family: monospace; }
+
+        .btn-cancel {
+            background: none; border: 1px solid #2a1a1a;
+            color: #553333; padding: 6px 16px;
+            border-radius: var(--radius); font-size: 12px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn-cancel:hover { border-color: var(--error); color: var(--error); }
+
+        /* Empty state */
+        .empty { text-align: center; padding: 80px 0; color: var(--text-muted); display: none; }
+        .empty.show { display: block; }
+        .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
+        .empty p { font-family: monospace; font-size: 13px; margin-bottom: 20px; }
+        .btn-go { display: inline-block; padding: 10px 24px; background: var(--accent); color: #0d0d0d; border-radius: var(--radius); text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: background 0.2s; }
+        .btn-go:hover { background: var(--accent-dark); }
+
+        /* Statystyki */
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+        .stat-value { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--text); margin-bottom: 4px; }
+        .stat-label { font-size: 11px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-logo" href="index.html">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+            <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+        </svg>
+        <span class="nav-logo-text">CINEMA</span>
+    </a>
+    <div class="nav-right">
+        <span class="nav-username" id="navUsername"></span>
+        <a href="index.html" class="nav-btn">Repertuar</a>
+        <a href="admin.html" class="nav-btn" id="adminBtn" style="display:none">Panel admina</a>
+        <button class="nav-btn" onclick="logout()">Wyloguj</button>
+    </div>
+</nav>
+
+<div class="hero">
+    <p class="hero-label">Konto</p>
+    <h1 class="hero-title">Moje rezerwacje</h1>
+</div>
+
+<main>
+    <div class="alert" id="alert"></div>
+
+    <!-- Statystyki -->
+    <div class="stats" id="stats" style="display:none">
+        <div class="stat-card">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Wszystkich</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statConfirmed" style="color:var(--success)">0</div>
+            <div class="stat-label">Potwierdzonych</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statPending" style="color:var(--warning)">0</div>
+            <div class="stat-label">Oczekujących</div>
+        </div>
+    </div>
+
+    <!-- Lista -->
+    <div id="list"></div>
+
+    <!-- Empty state -->
+    <div class="empty" id="empty">
+        <div class="empty-icon">🎟️</div>
+        <p>Nie masz jeszcze żadnych rezerwacji</p>
+        <a href="index.html" class="btn-go">Przeglądaj repertuar</a>
+    </div>
+</main>
+
+<script>
+    const API   = 'http://localhost:8080/api';
+    const token = localStorage.getItem('token');
+
+    if (!token) window.location.href = 'auth.html';
+    if (localStorage.getItem('role') === 'ADMIN') {
+    document.getElementById('adminBtn').style.display = 'inline-block';
+}
+
+    document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+
+    const hdrs = () => ({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    });
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function statusLabel(s) {
+        return { PENDING: 'Oczekuje', CONFIRMED: 'Potwierdzona', CANCELLED: 'Anulowana' }[s] || s;
+    }
+
+    // ── Ładowanie ────────────────────────────────────────────────
+    async function loadReservations() {
+        const list = document.getElementById('list');
+
+        // Skeleton podczas ładowania
+        list.innerHTML = Array.from({ length: 3 }).map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-line" style="height:16px;width:40%;margin-bottom:10px"></div>
+        <div class="skeleton-line" style="height:12px;width:60%;margin-bottom:6px"></div>
+        <div class="skeleton-line" style="height:12px;width:30%"></div>
+      </div>`).join('');
+
+        try {
+            const res = await fetch(`${API}/reservations/my`, { headers: hdrs() });
+
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) throw new Error();
+
+            const reservations = await res.json();
+            renderReservations(reservations);
+
+        } catch {
+            showAlert('Nie udało się pobrać rezerwacji.', 'error');
+            list.innerHTML = '';
+        }
+    }
+
+    // ── Renderowanie ─────────────────────────────────────────────
+    function renderReservations(reservations) {
+        const list  = document.getElementById('list');
+        const empty = document.getElementById('empty');
+        const stats = document.getElementById('stats');
+
+        if (!reservations.length) {
+            list.innerHTML = '';
+            empty.classList.add('show');
+            return;
+        }
+
+        // Statystyki
+        const total     = reservations.length;
+        const confirmed = reservations.filter(r => r.status === 'CONFIRMED').length;
+        const pending   = reservations.filter(r => r.status === 'PENDING').length;
+        document.getElementById('statTotal').textContent     = total;
+        document.getElementById('statConfirmed').textContent = confirmed;
+        document.getElementById('statPending').textContent   = pending;
+        stats.style.display = 'grid';
+
+        list.innerHTML = reservations.map(r => {
+            const seats = r.seats?.map(s => `R${s.rowNumber}/M${s.seatNumber}`).join(', ') || '—';
+            const time  = r.screeningTime
+                ? new Date(r.screeningTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })
+                : '—';
+            const canCancel = r.status !== 'CANCELLED';
+
+            return `
+        <div class="reservation-card" id="res-${r.id}">
+          <div class="card-header">
+            <div>
+              <div class="card-movie">${escapeHtml(r.movieTitle)}</div>
+              <div class="card-meta">
+                <span>🏛️ ${escapeHtml(r.hallName)}</span>
+                <span>🕐 ${time}</span>
+              </div>
+            </div>
+            <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
+          </div>
+          <div class="card-footer">
+            <div>
+              <div class="card-seats">Miejsca: ${escapeHtml(seats)}</div>
+              <div class="card-id">Rezerwacja #${r.id}</div>
+            </div>
+            ${canCancel ? `<button class="btn-cancel" onclick="cancelReservation(${r.id})">Anuluj</button>` : ''}
+          </div>
+        </div>`;
+        }).join('');
+    }
+
+    // ── Anulowanie ───────────────────────────────────────────────
+    async function cancelReservation(id) {
+        if (!confirm('Czy na pewno chcesz anulować tę rezerwację?')) return;
+
+        try {
+            const res = await fetch(`${API}/reservations/${id}/cancel`, {
+                method: 'PUT',
+                headers: hdrs()
+            });
+
+            if (!res.ok) throw new Error();
+
+            showAlert('Rezerwacja została anulowana.', 'success');
+            loadReservations(); // odśwież listę
+        } catch {
+            showAlert('Nie udało się anulować rezerwacji.', 'error');
+        }
+    }
+
+    function showAlert(msg, type) {
+        const el = document.getElementById('alert');
+        el.textContent = msg;
+        el.className = `alert ${type} show`;
+        setTimeout(() => el.classList.remove('show'), 4000);
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'auth.html';
+    }
+
+    loadReservations();
+</script>
+</body>
+</html>

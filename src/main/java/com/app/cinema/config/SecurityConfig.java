@@ -5,6 +5,8 @@ import com.app.cinema.security.UserDetailsServiceImpl;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -56,7 +58,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, Environment env) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -65,16 +67,31 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // publiczne
-                        .requestMatchers("/", "/auth.html", "/index.html", "/*.css", "/*.js").permitAll()
+                        // Pliki statyczne i błędy
+                        .requestMatchers("/", "/**.html", "/**.css", "/**.js", "/error").permitAll()
+
+                        // Auth - publiczne
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Filmy i seanse -  publiczne
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/screenings/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/halls/**").permitAll()
 
-                        //  ADMIN
+                        // Filmy i seanse -  tylko ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/movies/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/movies/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/screenings/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/screenings/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/halls/**").hasRole("ADMIN")
+
+
+                        // Rezerwacje
+                        .requestMatchers("/api/reservations/my").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/reservations/*/cancel").authenticated()
+                        .requestMatchers("/api/reservations/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -88,7 +105,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:8080"));
+        config.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

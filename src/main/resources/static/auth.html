@@ -342,7 +342,7 @@
             localStorage.setItem('username', data.username);
             localStorage.setItem('role', data.role);
 
-            window.location.href = 'index.html';
+            window.location.href = data.role === 'ADMIN' ? 'admin.html' : 'index.html';
 
         } catch {
             showAlert('loginAlert', 'Błąd połączenia z serwerem');

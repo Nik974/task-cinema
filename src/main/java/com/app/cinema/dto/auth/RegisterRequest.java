@@ -1,4 +1,4 @@
-package com.app.cinema.dto;
+package com.app.cinema.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

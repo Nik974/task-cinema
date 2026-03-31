@@ -24,7 +24,7 @@ public class Hall {
 
     @NotBlank
     @Size(max = 50)
-    @Column(name = "hall_name", nullable = false, length = 50)
+    @Column(name = "hall_name", nullable = false, unique = true, length = 50)
     private String name;
 
     @Min(1)

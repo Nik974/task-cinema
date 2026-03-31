@@ -297,6 +297,7 @@
   </a>
   <div class="nav-right">
     <span class="nav-username" id="navUsername"></span>
+    <a href="admin.html" class="nav-btn" id="adminBtn" style="display:none">Panel admina</a>
     <a href="reservations.html" class="nav-btn">Moje rezerwacje</a>
     <button class="nav-btn" onclick="logout()">Wyloguj</button>
   </div>
@@ -352,7 +353,9 @@
 
   if (!token) window.location.href = 'auth.html';
 
-
+if (localStorage.getItem('role') === 'ADMIN') {
+    document.getElementById('adminBtn').style.display = 'inline-block';
+}
   document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
 
   async function loadMovies() {

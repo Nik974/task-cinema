@@ -1,9 +1,9 @@
 package com.app.cinema.controller;
 
 
-import com.app.cinema.dto.AuthResponse;
-import com.app.cinema.dto.LoginRequest;
-import com.app.cinema.dto.RegisterRequest;
+import com.app.cinema.dto.auth.AuthResponse;
+import com.app.cinema.dto.auth.LoginRequest;
+import com.app.cinema.dto.auth.RegisterRequest;
 import com.app.cinema.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

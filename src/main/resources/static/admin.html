@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cinema — Panel Admina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0d0d0d; --surface: #141414; --border: #242424;
+            --accent: #c8a96e; --accent-dark: #a8893e;
+            --text: #f0ece4; --text-muted: #6b6560; --text-sub: #9a9590;
+            --error: #e05c5c; --success: #5cad7f; --warning: #f59e0b;
+            --radius: 6px;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13,13,13,0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px; display: flex; align-items: center;
+            justify-content: space-between; height: 60px;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo svg { color: var(--accent); }
+        .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; letter-spacing: 0.1em; color: var(--text); }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-badge { background: rgba(200,169,110,0.15); color: var(--accent); font-size: 11px; font-family: monospace; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.08em; text-transform: uppercase; }
+        .nav-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+
+        aside { border-right: 1px solid var(--border); padding: 32px 20px; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+        .sidebar-label { font-size: 10px; font-family: monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; padding: 0 8px; }
+        .sidebar-btn { width: 100%; text-align: left; padding: 10px 12px; background: none; border: none; color: var(--text-sub); font-family: 'DM Sans', sans-serif; font-size: 14px; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-btn:hover { background: var(--surface); color: var(--text); }
+        .sidebar-btn.active { background: rgba(200,169,110,0.1); color: var(--accent); }
+
+        main { padding: 40px; max-width: 900px; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 32px; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; margin-bottom: 32px; }
+        .form-card h2 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; margin-bottom: 20px; color: var(--text); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-sub); }
+        .field input, .field select, .field textarea { padding: 10px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+        .field select option { background: #1a1a1a; }
+        .field textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { margin-top: 20px; padding: 12px 28px; background: var(--accent); color: #0d0d0d; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+        .btn-submit:hover { background: var(--accent-dark); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .alert { padding: 11px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 16px; display: none; }
+        .alert.error   { background: rgba(224,92,92,.1); border: 1px solid rgba(224,92,92,.25); color: var(--error); }
+        .alert.success { background: rgba(92,173,127,.1); border: 1px solid rgba(92,173,127,.25); color: var(--success); }
+        .alert.show { display: block; }
+
+        .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; margin-bottom: 16px; }
+        .list-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .list-item-title { font-size: 14px; color: var(--text); margin-bottom: 3px; }
+        .list-item-sub { font-size: 12px; color: var(--text-muted); font-family: monospace; }
+        .empty-list { color: var(--text-muted); font-size: 13px; font-family: monospace; padding: 20px 0; }
+
+        /* Rezerwacje */
+        .filters { display: flex; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
+        .filters .field { flex: 1; }
+        .btn-filter { padding: 10px 20px; background: var(--surface); border: 1px solid var(--border); color: var(--text-sub); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .btn-filter:hover { border-color: var(--accent); color: var(--accent); }
+        .reservation-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 10px; }
+        .reservation-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .reservation-title { font-size: 15px; color: var(--text); font-family: 'Playfair Display', serif; }
+        .reservation-meta { font-size: 12px; color: var(--text-muted); font-family: monospace; margin-top: 4px; }
+        .reservation-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .reservation-seats { font-size: 12px; color: var(--text-sub); font-family: monospace; }
+        .status-badge { font-size: 11px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 20px; }
+        .status-PENDING   { background: rgba(245,158,11,.12); color: var(--warning); }
+        .status-CONFIRMED { background: rgba(92,173,127,.12); color: var(--success); }
+        .status-CANCELLED { background: rgba(100,100,100,.12); color: var(--text-muted); }
+        .btn-actions { display: flex; gap: 8px; }
+        .btn-confirm { background: none; border: 1px solid rgba(92,173,127,.3); color: var(--success); padding: 5px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .btn-confirm:hover { background: rgba(92,173,127,.1); }
+        .btn-cancel-res { background: none; border: 1px solid #2a1a1a; color: #553333; padding: 5px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .btn-cancel-res:hover { border-color: var(--error); color: var(--error); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-logo" href="index.html">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+            <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+        </svg>
+        <span class="nav-logo-text">CINEMA</span>
+    </a>
+    <div class="nav-right">
+        <span class="nav-badge">Admin</span>
+        <span style="font-size:13px;color:var(--text-sub)" id="navUsername"></span>
+        <a href="index.html" class="nav-btn">Repertuar</a>
+        <button class="nav-btn" onclick="logout()">Wyloguj</button>
+    </div>
+</nav>
+
+<div class="layout">
+    <aside>
+        <div class="sidebar-label">Zarządzanie</div>
+        <button class="sidebar-btn active" onclick="showPanel('movies', this)">🎬 Filmy</button>
+        <button class="sidebar-btn" onclick="showPanel('halls', this)">🏛️ Sale</button>
+        <button class="sidebar-btn" onclick="showPanel('screenings', this)">🕐 Seanse</button>
+        <button class="sidebar-btn" onclick="showPanel('reservations', this)">🎟️ Rezerwacje</button>
+    </aside>
+
+    <main>
+
+        <!-- ── Filmy ── -->
+        <div id="panel-movies" class="panel active">
+            <h1 class="page-title">Filmy</h1>
+            <div class="form-card">
+                <h2>Dodaj film</h2>
+                <div class="alert" id="movieAlert"></div>
+                <div class="form-grid">
+                    <div class="field full">
+                        <label>Tytuł *</label>
+                        <input type="text" id="movieTitle" placeholder="Tytuł filmu"/>
+                    </div>
+                    <div class="field full">
+                        <label>Opis</label>
+                        <textarea id="movieDesc" placeholder="Opis filmu... (max 200 znaków)" maxlength="200"></textarea>
+                    </div>
+                    <div class="field">
+                        <label>Czas trwania (min) *</label>
+                        <input type="number" id="movieDuration" placeholder="120" min="1"/>
+                    </div>
+                    <div class="field">
+                        <label>Data premiery *</label>
+                        <input type="date" id="movieReleaseDate"/>
+                    </div>
+                </div>
+                <button class="btn-submit" id="movieBtn" onclick="addMovie()">Dodaj film</button>
+            </div>
+            <h2 class="section-title">Lista filmów</h2>
+            <div id="moviesList"></div>
+        </div>
+
+        <!-- ── Sale ── -->
+        <div id="panel-halls" class="panel">
+            <h1 class="page-title">Sale kinowe</h1>
+            <div class="form-card">
+                <h2>Dodaj salę</h2>
+                <div class="alert" id="hallAlert"></div>
+                <div class="form-grid">
+                    <div class="field full">
+                        <label>Nazwa sali * (max 100 znaków)</label>
+                        <input type="text" id="hallName" placeholder="np. Sala 1" maxlength="100"/>
+                    </div>
+                    <div class="field">
+                        <label>Liczba rzędów * (1–100)</label>
+                        <input type="number" id="hallRows" placeholder="10" min="1" max="100"/>
+                    </div>
+                    <div class="field">
+                        <label>Miejsc w rzędzie * (2–100)</label>
+                        <input type="number" id="hallSeats" placeholder="15" min="2" max="100"/>
+                    </div>
+                </div>
+                <button class="btn-submit" id="hallBtn" onclick="addHall()">Dodaj salę</button>
+            </div>
+            <h2 class="section-title">Lista sal</h2>
+            <div id="hallsList"></div>
+        </div>
+
+        <!-- ── Seanse ── -->
+        <div id="panel-screenings" class="panel">
+            <h1 class="page-title">Seanse</h1>
+            <div class="form-card">
+                <h2>Dodaj seans</h2>
+                <div class="alert" id="screeningAlert"></div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Film *</label>
+                        <select id="screeningMovie"><option value="">— wybierz film —</option></select>
+                    </div>
+                    <div class="field">
+                        <label>Sala *</label>
+                        <select id="screeningHall"><option value="">— wybierz salę —</option></select>
+                    </div>
+                    <div class="field">
+                        <label>Początek *</label>
+                        <input type="datetime-local" id="screeningStart"/>
+                    </div>
+                    <div class="field">
+                        <label>Koniec *</label>
+                        <input type="datetime-local" id="screeningEnd"/>
+                    </div>
+                    <div class="field">
+                        <label>Cena biletu (zł) *</label>
+                        <input type="number" id="screeningPrice" placeholder="25.00" min="0.01" step="0.01"/>
+                    </div>
+                </div>
+                <button class="btn-submit" id="screeningBtn" onclick="addScreening()">Dodaj seans</button>
+            </div>
+            <h2 class="section-title">Lista seansów</h2>
+            <div id="screeningsList"></div>
+        </div>
+
+        <!-- ── Rezerwacje ── -->
+        <div id="panel-reservations" class="panel">
+            <h1 class="page-title">Rezerwacje</h1>
+            <div class="form-card">
+                <h2>Filtruj</h2>
+                <div class="filters">
+                    <div class="field">
+                        <label>Username</label>
+                        <input type="text" id="filterUsername" placeholder="np. jan.kowalski"/>
+                    </div>
+                    <div class="field">
+                        <label>Seans</label>
+                        <select id="filterScreening"><option value="">— wszystkie —</option></select>
+                    </div>
+                    <button class="btn-filter" onclick="loadReservations()">Szukaj</button>
+                    <button class="btn-filter" onclick="clearFilters()">Wyczyść</button>
+                </div>
+            </div>
+            <div class="alert" id="reservationAlert"></div>
+            <h2 class="section-title">Lista rezerwacji</h2>
+            <div id="reservationsList"></div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const API   = 'http://localhost:8080/api';
+    const token = localStorage.getItem('token');
+    const role  = localStorage.getItem('role');
+
+    if (!token || role !== 'ADMIN') window.location.href = 'index.html';
+    document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+
+    const hdrs = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showAlert(id, msg, type = 'error') {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = `alert ${type} show`;
+        setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function setLoading(btnId, loading) {
+        document.getElementById(btnId).disabled = loading;
+    }
+
+    function showPanel(name, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        btn.classList.add('active');
+        if (name === 'movies')       loadMovies();
+        if (name === 'halls')        loadHalls();
+        if (name === 'screenings')   { loadMoviesSelect(); loadHallsSelect(); loadScreenings(); }
+        if (name === 'reservations') { loadScreeningsSelect(); loadReservations(); }
+    }
+
+    async function loadMovies() {
+        const res = await fetch(`${API}/movies`, { headers: hdrs() });
+        const movies = await res.json();
+        const list = document.getElementById('moviesList');
+        if (!movies.length) { list.innerHTML = '<p class="empty-list">Brak filmów</p>'; return; }
+        list.innerHTML = movies.map(m => `
+      <div class="list-item">
+        <div>
+          <div class="list-item-title">${escapeHtml(m.title)}</div>
+          <div class="list-item-sub">${m.durationMinutes} min · premiera: ${m.releaseDate || '—'}</div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function addMovie() {
+        const title       = document.getElementById('movieTitle').value.trim();
+        const desc        = document.getElementById('movieDesc').value.trim();
+        const duration    = parseInt(document.getElementById('movieDuration').value);
+        const releaseDate = document.getElementById('movieReleaseDate').value;
+
+        if (!title)              return showAlert('movieAlert', 'Podaj tytuł');
+        if (!duration || duration < 1) return showAlert('movieAlert', 'Podaj poprawny czas trwania');
+        if (!releaseDate)        return showAlert('movieAlert', 'Podaj datę premiery');
+
+        setLoading('movieBtn', true);
+        try {
+            const res = await fetch(`${API}/movies`, {
+                method: 'POST', headers: hdrs(),
+                // Wysyłamy pola zgodne z CreateMovieDTO
+                body: JSON.stringify({
+                    title,
+                    description: desc || null,
+                    durationMinutes: duration,
+                    releaseDate  // format "2024-01-15"
+                })
+            });
+
+            if (!res.ok) {
+                const ct = res.headers.get('content-type');
+                const err = ct && ct.includes('json') ? JSON.stringify(await res.json()) : await res.text();
+                return showAlert('movieAlert', err);
+            }
+
+            showAlert('movieAlert', 'Film dodany!', 'success');
+            ['movieTitle','movieDesc','movieDuration','movieReleaseDate'].forEach(id => document.getElementById(id).value = '');
+            loadMovies();
+        } finally {
+            setLoading('movieBtn', false);
+        }
+    }
+
+    async function loadHalls() {
+        const res = await fetch(`${API}/halls`, { headers: hdrs() });
+        const halls = await res.json();
+        const list = document.getElementById('hallsList');
+        if (!halls.length) { list.innerHTML = '<p class="empty-list">Brak sal</p>'; return; }
+        list.innerHTML = halls.map(h => `
+      <div class="list-item">
+        <div>
+          <div class="list-item-title">${escapeHtml(h.name)}</div>
+          <div class="list-item-sub">${h.rows} rzędy · ${h.seatsPerRow} miejsc · ${h.rows * h.seatsPerRow} łącznie</div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function addHall() {
+        const name  = document.getElementById('hallName').value.trim();
+        const rows  = parseInt(document.getElementById('hallRows').value);
+        const seats = parseInt(document.getElementById('hallSeats').value);
+
+        if (!name)               return showAlert('hallAlert', 'Podaj nazwę sali');
+        if (!rows  || rows  < 1) return showAlert('hallAlert', 'Podaj liczbę rzędów (min 1)');
+        if (!seats || seats < 2) return showAlert('hallAlert', 'Podaj liczbę miejsc w rzędzie (min 2)');
+
+        setLoading('hallBtn', true);
+        try {
+            const res = await fetch(`${API}/halls`, {
+                method: 'POST', headers: hdrs(),
+                // Pola zgodne z CreateHallDTO: name, rows, seatsPerRow
+                body: JSON.stringify({ name, rows, seatsPerRow: seats })
+            });
+
+            if (!res.ok) {
+                const err = await res.text();
+                return showAlert('hallAlert', err);
+            }
+
+            showAlert('hallAlert', `Sala dodana! (${rows * seats} miejsc)`, 'success');
+            ['hallName','hallRows','hallSeats'].forEach(id => document.getElementById(id).value = '');
+            loadHalls();
+        } finally {
+            setLoading('hallBtn', false);
+        }
+    }
+
+    async function loadMoviesSelect() {
+        const movies = await fetch(`${API}/movies`, { headers: hdrs() }).then(r => r.json());
+        const sel = document.getElementById('screeningMovie');
+        sel.innerHTML = '<option value="">— wybierz film —</option>' +
+            movies.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('');
+    }
+
+    async function loadHallsSelect() {
+        const halls = await fetch(`${API}/halls`, { headers: hdrs() }).then(r => r.json());
+        const sel = document.getElementById('screeningHall');
+        sel.innerHTML = '<option value="">— wybierz salę —</option>' +
+            halls.map(h => `<option value="${h.id}">${escapeHtml(h.name)}</option>`).join('');
+    }
+
+    async function loadScreenings() {
+        const screenings = await fetch(`${API}/screenings`, { headers: hdrs() }).then(r => r.json());
+        const list = document.getElementById('screeningsList');
+        if (!screenings.length) { list.innerHTML = '<p class="empty-list">Brak seansów</p>'; return; }
+        list.innerHTML = screenings.map(s => `
+      <div class="list-item">
+        <div>
+          <div class="list-item-title">Film #${s.movieId} · Sala #${s.hallId}</div>
+          <div class="list-item-sub">
+            ${new Date(s.startTime).toLocaleString('pl-PL',{dateStyle:'short',timeStyle:'short'})}
+            → ${new Date(s.endTime).toLocaleString('pl-PL',{dateStyle:'short',timeStyle:'short'})}
+            · ${parseFloat(s.price).toFixed(2)} zł
+          </div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function addScreening() {
+        const movieId = document.getElementById('screeningMovie').value;
+        const hallId  = document.getElementById('screeningHall').value;
+        const start   = document.getElementById('screeningStart').value;
+        const end     = document.getElementById('screeningEnd').value;
+        const price   = document.getElementById('screeningPrice').value;
+
+        if (!movieId)                  return showAlert('screeningAlert', 'Wybierz film');
+        if (!hallId)                   return showAlert('screeningAlert', 'Wybierz salę');
+        if (!start)                    return showAlert('screeningAlert', 'Podaj godzinę rozpoczęcia');
+        if (!end)                      return showAlert('screeningAlert', 'Podaj godzinę zakończenia');
+        if (new Date(end) <= new Date(start)) return showAlert('screeningAlert', 'Koniec musi być po początku');
+        if (!price || parseFloat(price) < 0.01) return showAlert('screeningAlert', 'Podaj cenę (min 0.01 zł)');
+
+        setLoading('screeningBtn', true);
+        try {
+            const res = await fetch(`${API}/screenings`, {
+                method: 'POST', headers: hdrs(),
+                // Pola zgodne z CreateScreeningDTO
+                // LocalDateTime w Spring Boot przyjmuje format "2024-01-15T18:00:00"
+                body: JSON.stringify({
+                    movieId: parseInt(movieId),
+                    hallId:  parseInt(hallId),
+                    startTime: start + ':00', // datetime-local daje "2024-01-15T18:00", dodaj sekundy
+                    endTime:   end   + ':00',
+                    price: parseFloat(price)
+                })
+            });
+
+            if (!res.ok) {
+                const ct = res.headers.get('content-type');
+                const err = ct && ct.includes('json') ? JSON.stringify(await res.json()) : await res.text();
+                return showAlert('screeningAlert', err);
+            }
+
+            showAlert('screeningAlert', 'Seans dodany!', 'success');
+            ['screeningMovie','screeningHall','screeningStart','screeningEnd','screeningPrice']
+                .forEach(id => document.getElementById(id).value = '');
+            loadScreenings();
+        } finally {
+            setLoading('screeningBtn', false);
+        }
+    }
+
+    async function loadScreeningsSelect() {
+        const screenings = await fetch(`${API}/screenings`, { headers: hdrs() }).then(r => r.json());
+        const sel = document.getElementById('filterScreening');
+        sel.innerHTML = '<option value="">— wszystkie —</option>' +
+            screenings.map(s => `<option value="${s.id}">Seans #${s.id} — ${new Date(s.startTime).toLocaleString('pl-PL',{dateStyle:'short',timeStyle:'short'})}</option>`).join('');
+    }
+
+    async function loadReservations() {
+        const username    = document.getElementById('filterUsername').value.trim();
+        const screeningId = document.getElementById('filterScreening').value;
+        let url = `${API}/reservations`;
+        if (username)    url += `?username=${encodeURIComponent(username)}`;
+        else if (screeningId) url += `?screeningId=${screeningId}`;
+        const res = await fetch(url, { headers: hdrs() });
+        if (!res.ok) { showAlert('reservationAlert', 'Błąd pobierania rezerwacji'); return; }
+        renderReservations(await res.json());
+    }
+
+    function renderReservations(list) {
+        const el = document.getElementById('reservationsList');
+        if (!list.length) { el.innerHTML = '<p class="empty-list">Brak rezerwacji</p>'; return; }
+        const statusLabel = s => ({ PENDING:'Oczekuje', CONFIRMED:'Potwierdzona', CANCELLED:'Anulowana' }[s] || s);
+        el.innerHTML = list.map(r => {
+            const seats = r.seats?.map(s => `R${s.rowNumber}/M${s.seatNumber}`).join(', ') || '—';
+            const time  = r.screeningTime ? new Date(r.screeningTime).toLocaleString('pl-PL',{dateStyle:'short',timeStyle:'short'}) : '—';
+            return `
+        <div class="reservation-card">
+          <div class="reservation-header">
+            <div>
+              <div class="reservation-title">${escapeHtml(r.movieTitle || 'Seans #' + r.screeningId)}</div>
+              <div class="reservation-meta">👤 ${escapeHtml(r.username)} · 🏛️ ${escapeHtml(r.hallName || '—')} · 🕐 ${time}</div>
+            </div>
+            <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
+          </div>
+          <div class="reservation-footer">
+            <span class="reservation-seats">Miejsca: ${escapeHtml(seats)}</span>
+            <div class="btn-actions">
+              ${r.status === 'PENDING'    ? `<button class="btn-confirm" onclick="confirmRes(${r.id})">✓ Potwierdź</button>` : ''}
+              ${r.status !== 'CANCELLED' ? `<button class="btn-cancel-res" onclick="cancelRes(${r.id})">✕ Anuluj</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+        }).join('');
+    }
+
+    async function confirmRes(id) {
+        const res = await fetch(`${API}/reservations/${id}/confirm`, { method: 'PUT', headers: hdrs() });
+        if (!res.ok) { showAlert('reservationAlert', 'Błąd potwierdzenia'); return; }
+        showAlert('reservationAlert', 'Rezerwacja potwierdzona!', 'success');
+        loadReservations();
+    }
+
+    async function cancelRes(id) {
+        if (!confirm('Anulować rezerwację?')) return;
+        const res = await fetch(`${API}/reservations/${id}/cancel`, { method: 'PUT', headers: hdrs() });
+        if (!res.ok) { showAlert('reservationAlert', 'Błąd anulowania'); return; }
+        showAlert('reservationAlert', 'Rezerwacja anulowana.', 'success');
+        loadReservations();
+    }
+
+    function clearFilters() {
+        document.getElementById('filterUsername').value = '';
+        document.getElementById('filterScreening').value = '';
+        loadReservations();
+    }
+
+    function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+
+    loadMovies();
+</script>
+</body>
+</html>

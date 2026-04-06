@@ -69,6 +69,26 @@
         .list-item-sub { font-size: 12px; color: var(--text-muted); font-family: monospace; }
         .empty-list { color: var(--text-muted); font-size: 13px; font-family: monospace; padding: 20px 0; }
 
+        /* Przyciski w elementach listy */
+        .btn-edit { background: none; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Modale (Okienka edycji) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 28px; width: 100%; max-width: 500px;
+        }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 20px; color: var(--text); }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 12px 20px; border-radius: var(--radius); font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
         /* Rezerwacje */
         .filters { display: flex; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
         .filters .field { flex: 1; }
@@ -121,7 +141,6 @@
 
     <main>
 
-        <!-- ── Filmy ── -->
         <div id="panel-movies" class="panel active">
             <h1 class="page-title">Filmy</h1>
             <div class="form-card">
@@ -151,7 +170,6 @@
             <div id="moviesList"></div>
         </div>
 
-        <!-- ── Sale ── -->
         <div id="panel-halls" class="panel">
             <h1 class="page-title">Sale kinowe</h1>
             <div class="form-card">
@@ -177,7 +195,6 @@
             <div id="hallsList"></div>
         </div>
 
-        <!-- ── Seanse ── -->
         <div id="panel-screenings" class="panel">
             <h1 class="page-title">Seanse</h1>
             <div class="form-card">
@@ -211,7 +228,6 @@
             <div id="screeningsList"></div>
         </div>
 
-        <!-- ── Rezerwacje ── -->
         <div id="panel-reservations" class="panel">
             <h1 class="page-title">Rezerwacje</h1>
             <div class="form-card">
@@ -237,6 +253,35 @@
     </main>
 </div>
 
+<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+    <div class="modal">
+        <div class="modal-title">Edytuj film</div>
+        <div class="alert" id="editAlert"></div>
+        <div class="form-grid">
+            <div class="field full">
+                <label>Tytuł *</label>
+                <input type="text" id="editTitle" placeholder="Tytuł filmu"/>
+            </div>
+            <div class="field full">
+                <label>Opis</label>
+                <textarea id="editDesc" placeholder="Opis filmu..." maxlength="200"></textarea>
+            </div>
+            <div class="field">
+                <label>Czas trwania (min) *</label>
+                <input type="number" id="editDuration" placeholder="120" min="1"/>
+            </div>
+            <div class="field">
+                <label>Data premiery *</label>
+                <input type="date" id="editReleaseDate"/>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeEditModal()">Anuluj</button>
+            <button class="btn-submit" style="margin-top:0" id="editBtn" onclick="saveEdit()">Zapisz zmiany</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const API   = 'http://localhost:8080/api';
     const token = localStorage.getItem('token');
@@ -245,6 +290,11 @@
     if (!token || role !== 'ADMIN') window.location.href = 'index.html';
     document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
 
+    // ── Zmienne globalne do edycji ───────────────────────────────
+    let loadedMovies = [];
+    let currentEditMovieId = null;
+
+    // ── Helpers ──────────────────────────────────────────────────
     const hdrs = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
 
     function escapeHtml(str) {
@@ -263,6 +313,7 @@
         document.getElementById(btnId).disabled = loading;
     }
 
+    // ── Nawigacja ────────────────────────────────────────────────
     function showPanel(name, btn) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
@@ -274,17 +325,21 @@
         if (name === 'reservations') { loadScreeningsSelect(); loadReservations(); }
     }
 
+    // ── Filmy ────────────────────────────────────────────────────
     async function loadMovies() {
         const res = await fetch(`${API}/movies`, { headers: hdrs() });
-        const movies = await res.json();
+        loadedMovies = await res.json();
         const list = document.getElementById('moviesList');
-        if (!movies.length) { list.innerHTML = '<p class="empty-list">Brak filmów</p>'; return; }
-        list.innerHTML = movies.map(m => `
+        if (!loadedMovies.length) { list.innerHTML = '<p class="empty-list">Brak filmów</p>'; return; }
+
+        // Dodany przycisk Edytuj w każdym rzędzie
+        list.innerHTML = loadedMovies.map(m => `
       <div class="list-item">
         <div>
           <div class="list-item-title">${escapeHtml(m.title)}</div>
           <div class="list-item-sub">${m.durationMinutes} min · premiera: ${m.releaseDate || '—'}</div>
         </div>
+        <button class="btn-edit" onclick="openEditModal(${m.id})">Edytuj</button>
       </div>`).join('');
     }
 
@@ -302,12 +357,11 @@
         try {
             const res = await fetch(`${API}/movies`, {
                 method: 'POST', headers: hdrs(),
-                // Wysyłamy pola zgodne z CreateMovieDTO
                 body: JSON.stringify({
                     title,
                     description: desc || null,
                     durationMinutes: duration,
-                    releaseDate  // format "2024-01-15"
+                    releaseDate
                 })
             });
 
@@ -325,6 +379,66 @@
         }
     }
 
+    // ── Edycja filmów (Modal) ────────────────────────────────────
+    function openEditModal(id) {
+        const movie = loadedMovies.find(m => m.id === id);
+        if (!movie) return;
+
+        currentEditMovieId = id;
+        document.getElementById('editTitle').value = movie.title;
+        document.getElementById('editDesc').value = movie.description || '';
+        document.getElementById('editDuration').value = movie.durationMinutes;
+        document.getElementById('editReleaseDate').value = movie.releaseDate || '';
+
+        document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal(event) {
+        // Jeśli kliknięto z parametrem 'event' sprawdzamy, czy to tło.
+        // Jeśli nie ma eventu (bo kliknięto np. 'Anuluj') to po prostu zamykamy
+        if (event) {
+            if (!event.target.classList.contains('modal-overlay')) return;
+        }
+        document.getElementById('editModal').classList.remove('show');
+        currentEditMovieId = null;
+    }
+
+    async function saveEdit() {
+        const title       = document.getElementById('editTitle').value.trim();
+        const desc        = document.getElementById('editDesc').value.trim();
+        const duration    = parseInt(document.getElementById('editDuration').value);
+        const releaseDate = document.getElementById('editReleaseDate').value;
+
+        if (!title) return showAlert('editAlert', 'Podaj tytuł');
+        if (!duration || duration < 1) return showAlert('editAlert', 'Podaj poprawny czas trwania');
+        if (!releaseDate) return showAlert('editAlert', 'Podaj datę premiery');
+
+        setLoading('editBtn', true);
+        try {
+            const res = await fetch(`${API}/movies/${currentEditMovieId}`, {
+                method: 'PUT', headers: hdrs(),
+                body: JSON.stringify({
+                    title,
+                    description: desc || null,
+                    durationMinutes: duration,
+                    releaseDate
+                })
+            });
+
+            if (!res.ok) {
+                const ct = res.headers.get('content-type');
+                const err = ct && ct.includes('json') ? JSON.stringify(await res.json()) : await res.text();
+                return showAlert('editAlert', err);
+            }
+
+            closeEditModal();
+            loadMovies(); // Odświeża listę na stronie, co również zaktualizuje zmienną "loadedMovies"
+        } finally {
+            setLoading('editBtn', false);
+        }
+    }
+
+    // ── Sale ─────────────────────────────────────────────────────
     async function loadHalls() {
         const res = await fetch(`${API}/halls`, { headers: hdrs() });
         const halls = await res.json();
@@ -352,7 +466,6 @@
         try {
             const res = await fetch(`${API}/halls`, {
                 method: 'POST', headers: hdrs(),
-                // Pola zgodne z CreateHallDTO: name, rows, seatsPerRow
                 body: JSON.stringify({ name, rows, seatsPerRow: seats })
             });
 
@@ -369,6 +482,7 @@
         }
     }
 
+    // ── Seanse ───────────────────────────────────────────────────
     async function loadMoviesSelect() {
         const movies = await fetch(`${API}/movies`, { headers: hdrs() }).then(r => r.json());
         const sel = document.getElementById('screeningMovie');
@@ -418,12 +532,10 @@
         try {
             const res = await fetch(`${API}/screenings`, {
                 method: 'POST', headers: hdrs(),
-                // Pola zgodne z CreateScreeningDTO
-                // LocalDateTime w Spring Boot przyjmuje format "2024-01-15T18:00:00"
                 body: JSON.stringify({
                     movieId: parseInt(movieId),
                     hallId:  parseInt(hallId),
-                    startTime: start + ':00', // datetime-local daje "2024-01-15T18:00", dodaj sekundy
+                    startTime: start + ':00',
                     endTime:   end   + ':00',
                     price: parseFloat(price)
                 })
@@ -444,6 +556,7 @@
         }
     }
 
+    // ── Rezerwacje ───────────────────────────────────────────────
     async function loadScreeningsSelect() {
         const screenings = await fetch(`${API}/screenings`, { headers: hdrs() }).then(r => r.json());
         const sel = document.getElementById('filterScreening');

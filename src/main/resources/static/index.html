@@ -335,6 +335,7 @@
         <div class="modal-meta">
           <span class="movie-genre" id="modalGenre"></span>
           <span class="movie-duration" id="modalDuration"></span>
+          <span class="movie-duration" id="modalReleaseDate"></span>
         </div>
       </div>
       <button class="modal-close" onclick="hideModal()">×</button>
@@ -438,6 +439,7 @@ if (localStorage.getItem('role') === 'ADMIN') {
     document.getElementById('modalTitle').textContent = movie.title;
     document.getElementById('modalGenre').textContent = movie.genre || '';
     document.getElementById('modalDuration').textContent = movie.durationMinutes ? `${movie.durationMinutes} min` : '';
+    document.getElementById('modalReleaseDate').textContent = movie.releaseDate ? `Premiera: ${movie.releaseDate}` : '';
     document.getElementById('modalDesc').textContent = movie.description || 'Brak opisu';
     document.getElementById('modalBtn').onclick = () => {
       window.location.href = `screenings.html?movieId=${movie.id}`;

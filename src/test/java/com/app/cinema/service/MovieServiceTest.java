@@ -148,7 +148,7 @@ class MovieServiceTest {
         when(movieRepository.existsByTitle("Test-Name-1")).thenReturn(true);
 
         assertThatThrownBy(()->movieService.addNewMovie(createMovieDTO))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Film o takim tytule już istnieje!");
 
         verify(movieRepository).existsByTitle("Test-Name-1");

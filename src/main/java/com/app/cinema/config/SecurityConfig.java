@@ -68,7 +68,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         // Pliki statyczne i błędy
-                        .requestMatchers("/", "/**.html", "/**.css", "/**.js", "/error").permitAll()
+                        .requestMatchers("/", "/favicon.ico", "/**.html", "/**.css", "/**.js", "/error").permitAll()
 
                         // Auth - publiczne
                         .requestMatchers("/api/auth/**").permitAll()

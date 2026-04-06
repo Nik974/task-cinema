@@ -46,7 +46,7 @@ public class MovieService {
     public MovieDTO addNewMovie(CreateMovieDTO movieDTO) {
 
         if (movieRepository.existsByTitle(movieDTO.getTitle())) {
-            throw new RuntimeException("Film o takim tytule już istnieje!");
+            throw new IllegalArgumentException("Film o takim tytule już istnieje!");
         }
         Movie movie = Movie.builder()
                 .title(movieDTO.getTitle())

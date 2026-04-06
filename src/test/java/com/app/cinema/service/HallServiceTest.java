@@ -164,7 +164,7 @@ class HallServiceTest {
         when(hallRepository.existsByName("Sala A")).thenReturn(true);
 
         assertThatThrownBy(() -> hallService.addNewHall(createDTO))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Sala z taką nazwą już istnieje");
 
         verify(hallRepository).existsByName("Sala A");

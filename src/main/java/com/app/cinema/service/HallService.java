@@ -54,7 +54,7 @@ public class HallService {
     @Transactional
     public HallDTO addNewHall(CreateHallDTO hallDTO) {
         if (hallRepository.existsByName(hallDTO.getName())) {
-            throw new RuntimeException("Sala z taką nazwą już istnieje");
+            throw new IllegalArgumentException("Sala z taką nazwą już istnieje");
         }
 
         Hall hall = Hall.builder()

@@ -1,7 +1,6 @@
 package com.app.cinema.service;
 
 import com.app.cinema.dto.screening.CreateScreeningDTO;
-import com.app.cinema.dto.screening.EditScreeningDTO;
 import com.app.cinema.dto.screening.ScreeningDTO;
 import com.app.cinema.model.Hall;
 import com.app.cinema.model.Movie;
@@ -176,78 +175,6 @@ class ScreeningServiceTest {
         verify(screeningRepository, never()).save(any());
     }
 
-    @Test
-    void editScreening_ShouldUpdateAndReturnDTO_WhenDataIsValid() {
-        LocalDateTime newStart = START.plusDays(1);
-        LocalDateTime newEnd   = END.plusDays(1);
 
-        EditScreeningDTO editDTO = EditScreeningDTO.builder()
-                .startTime(newStart).endTime(newEnd)
-                .price(new BigDecimal("30.00"))
-                .build();
 
-        Screening updatedScreening = Screening.builder()
-                .id(1L).movie(movie).hall(hall)
-                .startTime(newStart).endTime(newEnd)
-                .price(new BigDecimal("30.00"))
-                .build();
-
-        when(screeningRepository.findById(1L)).thenReturn(Optional.of(screening));
-        when(screeningRepository.save(screening)).thenReturn(updatedScreening);
-
-        ScreeningDTO result = screeningService.editScreening(1L, editDTO);
-
-        assertThat(result.getStartTime()).isEqualTo(newStart);
-        assertThat(result.getEndTime()).isEqualTo(newEnd);
-        assertThat(result.getPrice()).isEqualByComparingTo("30.00");
-        verify(screeningRepository).save(screening);
-    }
-
-    @Test
-    void editScreening_ShouldThrow_WhenScreeningNotFound() {
-        EditScreeningDTO editDTO = EditScreeningDTO.builder()
-                .startTime(START).endTime(END)
-                .price(new BigDecimal("30.00"))
-                .build();
-
-        when(screeningRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> screeningService.editScreening(99L, editDTO))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("ID");
-
-        verify(screeningRepository, never()).save(any());
-    }
-
-    @Test
-    void editScreening_ShouldThrow_WhenStartTimeEqualsEndTime() {
-        EditScreeningDTO editDTO = EditScreeningDTO.builder()
-                .startTime(START).endTime(START)
-                .price(new BigDecimal("30.00"))
-                .build();
-
-        when(screeningRepository.findById(1L)).thenReturn(Optional.of(screening));
-
-        assertThatThrownBy(() -> screeningService.editScreening(1L, editDTO))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("takie same");
-
-        verify(screeningRepository, never()).save(any());
-    }
-
-    @Test
-    void editScreening_ShouldThrow_WhenStartTimeIsAfterEndTime() {
-        EditScreeningDTO editDTO = EditScreeningDTO.builder()
-                .startTime(END).endTime(START)
-                .price(new BigDecimal("30.00"))
-                .build();
-
-        when(screeningRepository.findById(1L)).thenReturn(Optional.of(screening));
-
-        assertThatThrownBy(() -> screeningService.editScreening(1L, editDTO))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("kończyć się przed");
-
-        verify(screeningRepository, never()).save(any());
-    }
 }

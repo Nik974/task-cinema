@@ -2,7 +2,6 @@ package com.app.cinema.controller;
 
 
 import com.app.cinema.dto.screening.CreateScreeningDTO;
-import com.app.cinema.dto.screening.EditScreeningDTO;
 import com.app.cinema.dto.screening.ScreeningDTO;
 import com.app.cinema.dto.seat.SeatDTO;
 import com.app.cinema.service.ScreeningService;
@@ -24,6 +23,7 @@ public class ScreeningController {
     private final ScreeningService screeningService;
     private final SeatService seatService;
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<ScreeningDTO>> getAllScreenings() {
         return ResponseEntity.ok(screeningService.getAllScreenings());
@@ -40,12 +40,5 @@ public class ScreeningController {
     public ResponseEntity<ScreeningDTO> addScreening(@Valid @RequestBody CreateScreeningDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(screeningService.createScreening(dto));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ScreeningDTO> editScreening(@PathVariable Long id,
-                                                      @Valid @RequestBody EditScreeningDTO dto) {
-        return ResponseEntity.ok(screeningService.editScreening(id, dto));
     }
 }

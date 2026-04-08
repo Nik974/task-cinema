@@ -5,6 +5,7 @@ import com.app.cinema.dto.reservation.ReservationDTO;
 import com.app.cinema.model.Role;
 import com.app.cinema.model.User;
 import com.app.cinema.service.ReservationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,6 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    // GET /api/reservations - wszystkie (admin)
-    // GET /api/reservations?username=jan - po userze (admin)
-    // GET /api/reservations?screeningId=5 - po seansie (admin)
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ReservationDTO>> getReservations(
@@ -61,7 +59,7 @@ public class ReservationController {
     }
     @PostMapping
     public ResponseEntity<ReservationDTO> createReservation(
-            @RequestBody CreateReservationDTO request,
+            @Valid @RequestBody CreateReservationDTO request,
             @AuthenticationPrincipal User user) {
         if (user.getRole() == Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

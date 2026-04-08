@@ -140,7 +140,7 @@ public class ReservationService {
                 .toList();
 
         reservationSeatRepository.saveAll(reservationSeats);
-
+        saved.setReservationSeats(reservationSeats);
         return toDTO(saved);
     }
     @Transactional

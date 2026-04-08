@@ -1,6 +1,7 @@
 package com.app.cinema.dto.reservation;
 
 import com.app.cinema.model.ReservationStatus;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

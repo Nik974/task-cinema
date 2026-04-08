@@ -110,11 +110,10 @@ class ReservationServiceTest {
 
 
     @Test
-    void createReservation_poprawneData_tworzyRezerwacje() {
+    void createReservation_shouldCreateReservation() {
 
-        CreateReservationDTO request = new CreateReservationDTO();
-        request.setScreeningId(1L);
-        request.setSeatIds(List.of(10L, 11L));
+        CreateReservationDTO request =  CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L, 11L)).build();
+
 
         when(screeningRepository.findById(1L)).thenReturn(Optional.of(screening));
         when(reservationSeatRepository.findOccupiedSeatsForScreening(1L))
@@ -136,11 +135,14 @@ class ReservationServiceTest {
     }
 
     @Test
-    void createReservation_seansNieIstnieje_rzucaEntityNotFoundException() {
+    void createReservation_nonExistingScreening_throwsEntityNotFoundException() {
 
-        CreateReservationDTO request = new CreateReservationDTO();
-        request.setScreeningId(99L);
-        request.setSeatIds(List.of(10L));
+        CreateReservationDTO request = CreateReservationDTO.builder()
+                .screeningId(99L)
+                .seatIds(List.of(10L))
+                .build();
+
+
 
         when(screeningRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -153,11 +155,10 @@ class ReservationServiceTest {
     }
 
     @Test
-    void createReservation_miejsceJuzZajete_rzucaIllegalStateException() {
+    void createReservation_withBookedSeat_throwsIllegalStateException() {
 
-        CreateReservationDTO request = new CreateReservationDTO();
-        request.setScreeningId(1L);
-        request.setSeatIds(List.of(10L)); // seat1 będzie zajęty
+        CreateReservationDTO request =  CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L)).build();
+
 
         ReservationSeat takenSeat = ReservationSeat.builder()
                 .seat(seat1)
@@ -179,7 +180,7 @@ class ReservationServiceTest {
 
 
     @Test
-    void getMyReservations_zwracaRezerwacjeUsera() {
+    void getMyReservations_returnsListOfReservations() {
 
         when(reservationRepository.findByUserId(1L))
                 .thenReturn(List.of(reservation));
@@ -193,7 +194,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void getMyReservations_brakRezerwacji_zwracaPustaListe() {
+    void getMyReservations_returnsEmptyList() {
 
         when(reservationRepository.findByUserId(99L)).thenReturn(List.of());
 
@@ -205,7 +206,7 @@ class ReservationServiceTest {
 
 
     @Test
-    void getAllReservations_zwracaWszystkieRezerwacje() {
+    void getAllReservations_returnsAllReservations() {
         Reservation reservation2 = Reservation.builder()
                 .id(2L).user(adminUser).screening(screening)
                 .status(ReservationStatus.CONFIRMED)
@@ -223,7 +224,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void getByScreening_zwracaRezerwacjeDlaSeansu() {
+    void getByScreening_returnsReservationsForScreening() {
 
         when(reservationRepository.findByScreeningId(1L))
                 .thenReturn(List.of(reservation));
@@ -237,7 +238,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void getByUsername_zwracaRezerwacjePoNazwieUsera() {
+    void getByUsername_returnsReservationsOfUser() {
 
         when(reservationRepository.findAll()).thenReturn(List.of(reservation));
 
@@ -248,7 +249,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void getByUsername_brakDopasowania_zwracaPustaListe() {
+    void getByUsername_notFound_returnsEmptyList() {
 
         when(reservationRepository.findAll()).thenReturn(List.of(reservation));
 
@@ -260,7 +261,7 @@ class ReservationServiceTest {
 
 
     @Test
-    void confirm_rezerwacjaPending_zmieniaStatusNaConfirmed() {
+    void confirm_Pending_changesStatusToConfirmed() {
 
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.save(any())).thenReturn(reservation);
@@ -274,7 +275,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void confirm_rezerwacjaAnulowana_rzucaIllegalStateException() {
+    void confirm_cancelledReservation_throwsIllegalStateException() {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
@@ -285,7 +286,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void confirm_nieistniejacaRezerwacja_rzucaEntityNotFoundException() {
+    void confirm_NonExistingReservation_throwsEntityNotFoundException() {
 
         when(reservationRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -295,7 +296,7 @@ class ReservationServiceTest {
 
 
     @Test
-    void cancel_zmieniaStatusNaCancelled() {
+    void cancel_changesStatus_Cancelled() {
 
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.save(any())).thenReturn(reservation);
@@ -309,7 +310,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void cancel_juzAnulowana_rzucaIllegalStateException() {
+    void cancel_alreadyCancelledReservation_throwsIllegalStateException() {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
@@ -320,7 +321,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void cancelByUser_wlasciciel_mozeCancelowac() {
+    void cancelByUser_changesStatus_Cancelled() {
 
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.save(any())).thenReturn(reservation);
@@ -334,7 +335,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void cancelByUser_admin_mozeCancelowacCudzaRezerwacje() {
+    void cancelByUser_asAdmin_cancelsSuccessfully() {
 
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.save(any())).thenReturn(reservation);
@@ -346,7 +347,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void cancelByUser_innyUser_rzucaAccessDeniedException() {
+    void cancelByUser_otherUserTriesToCancel_throwsAccessDeniedException() {
         User otherUser = User.builder()
                 .id(99L).username("obcy").role(Role.USER).build();
 

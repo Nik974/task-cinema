@@ -1,0 +1,17 @@
+# CONFIGURATION TEMPLATE
+# Copy this file to 'application.properties' and fill in your values.
+# ===================================================================
+
+spring.application.name=Cinema
+spring.datasource.url=jdbc:postgresql://localhost:5432/cinema-db
+spring.datasource.password=${DB_PASSWORD:YOUR_DB_PASSWORD}
+spring.datasource.username=${DB_USER:YOUR_DB_USERNAME}
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.defer-datasource-initialization=true
+spring.jpa.properties.hibernate.format_sql=true
+jwt.secret=jwt-secret-key
+jwt.expiration=3600000
+spring.jpa.properties.hibernate.dialect=PostgreSQL
+admin.username=YOUR_ADMIN_USERNAME
+admin.password=YOUR_ADMIN_PASSWORD
+admin.email=YOUR_ADMIN_EMAIL

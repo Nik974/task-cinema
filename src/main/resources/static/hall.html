@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cinema — Wybierz miejsca</title>
+  <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -167,14 +168,15 @@
 
 <script>
   const API   = 'http://localhost:8080/api';
-  const token = localStorage.getItem('token');
-  if (!token) window.location.href = 'auth.html';
-
-  document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
-  if (localStorage.getItem('role') === 'ADMIN') {
-    document.getElementById('adminBtn').style.display = 'inline-block';
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    sessionStorage.clear();
+    window.location.href = 'auth.html';
   }
-  if (localStorage.getItem('role') === 'ADMIN') {
+
+  document.getElementById('navUsername').textContent = sessionStorage.getItem('username') || '';
+
+  if (sessionStorage.getItem('role') === 'ADMIN') {
     document.getElementById('btnReserve').style.display = 'none';
   }
 
@@ -182,10 +184,12 @@
   const screeningId = params.get('screeningId');
   if (!screeningId) window.location.href = 'index.html';
 
-  const hdrs = () => ({ 'Authorization': `Bearer ${token}` });
-  const hdrsJson = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+  const hdrs = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });  const hdrsJson = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
 
-  let selectedSeats = []; // [{id, rowNumber, seatNumber}]
+  let selectedSeats = [];
   let ticketPrice   = 0;
   let allSeats      = [];
   let takenSeatIds  = new Set();
@@ -220,7 +224,7 @@
       const movie = await movieRes.json();
       const hall  = await hallRes.json();
 
-      // Hero
+
       const startTime = new Date(screening.startTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' });
       document.getElementById('heroTitle').textContent = movie.title;
       document.getElementById('heroMeta').textContent  = `${startTime} · ${hall.name}`;
@@ -365,8 +369,10 @@
     if (type === 'error') setTimeout(() => el.classList.remove('show'), 5000);
   }
 
-  function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
-
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'auth.html';
+  }
   load();
 </script>
 </body>

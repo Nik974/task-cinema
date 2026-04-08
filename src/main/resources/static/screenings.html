@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cinema — Seanse</title>
+  <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -106,21 +107,24 @@
 
 <script>
   const API   = 'http://localhost:8080/api';
-  const token = localStorage.getItem('token');
-  if (!token) window.location.href = 'auth.html';
-
-  document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
-  if (localStorage.getItem('role') === 'ADMIN') {
-    document.getElementById('adminBtn').style.display = 'inline-block';
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    sessionStorage.clear();
+    window.location.href = 'auth.html';
   }
+
+  document.getElementById('navUsername').textContent = sessionStorage.getItem('username') || '';
+
 
   // Pobierz movieId z URL: screenings.html?movieId=5
   const params  = new URLSearchParams(window.location.search);
   const movieId = params.get('movieId');
   if (!movieId) window.location.href = 'index.html';
 
-  const hdrs = () => ({ 'Authorization': `Bearer ${token}` });
-
+  const hdrs = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
   function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -208,8 +212,10 @@
     window.location.href = `hall.html?screeningId=${screeningId}`;
   }
 
-  function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
-
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'auth.html';
+  }
   load();
 </script>
 </body>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cinema — Moje rezerwacje</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -163,14 +164,16 @@
 
 <script>
     const API   = 'http://localhost:8080/api';
-    const token = localStorage.getItem('token');
-
-    if (!token) window.location.href = 'auth.html';
-    if (localStorage.getItem('role') === 'ADMIN') {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+        sessionStorage.clear();
+        window.location.href = 'auth.html';
+    }
+    if (sessionStorage.getItem('role') === 'ADMIN') {
     document.getElementById('adminBtn').style.display = 'inline-block';
 }
 
-    document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+    document.getElementById('navUsername').textContent = sessionStorage.getItem('username') || '';
 
     const hdrs = () => ({
         'Content-Type': 'application/json',
@@ -186,11 +189,9 @@
         return { PENDING: 'Oczekuje', CONFIRMED: 'Potwierdzona', CANCELLED: 'Anulowana' }[s] || s;
     }
 
-    // ── Ładowanie ────────────────────────────────────────────────
     async function loadReservations() {
         const list = document.getElementById('list');
 
-        // Skeleton podczas ładowania
         list.innerHTML = Array.from({ length: 3 }).map(() => `
       <div class="skeleton-card">
         <div class="skeleton-line" style="height:16px;width:40%;margin-bottom:10px"></div>
@@ -213,7 +214,6 @@
         }
     }
 
-    // ── Renderowanie ─────────────────────────────────────────────
     function renderReservations(reservations) {
         const list  = document.getElementById('list');
         const empty = document.getElementById('empty');
@@ -225,7 +225,6 @@
             return;
         }
 
-        // Statystyki
         const total     = reservations.length;
         const confirmed = reservations.filter(r => r.status === 'CONFIRMED').length;
         const pending   = reservations.filter(r => r.status === 'PENDING').length;
@@ -264,7 +263,6 @@
         }).join('');
     }
 
-    // ── Anulowanie ───────────────────────────────────────────────
     async function cancelReservation(id) {
         if (!confirm('Czy na pewno chcesz anulować tę rezerwację?')) return;
 
@@ -291,7 +289,7 @@
     }
 
     function logout() {
-        localStorage.clear();
+        window.__auth?.clear();
         window.location.href = 'auth.html';
     }
 

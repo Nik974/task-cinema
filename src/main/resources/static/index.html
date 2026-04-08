@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cinema — Repertuar</title>
+  <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -348,16 +349,15 @@
 </div>
 
 <script>
-  const API = 'http://localhost:8080/api';
-  const token = localStorage.getItem('token');
-
-
+  const API   = 'http://localhost:8080/api';
+  const token = sessionStorage.getItem('token');
+  const role  = sessionStorage.getItem('role');
   if (!token) window.location.href = 'auth.html';
 
-if (localStorage.getItem('role') === 'ADMIN') {
+if (sessionStorage.getItem('role') === 'ADMIN') {
     document.getElementById('adminBtn').style.display = 'inline-block';
 }
-  document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+  document.getElementById('navUsername').textContent = sessionStorage.getItem('username') || '';
 
   async function loadMovies() {
     const grid = document.getElementById('moviesGrid');
@@ -492,9 +492,7 @@ if (localStorage.getItem('role') === 'ADMIN') {
   }
 
   function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
+    sessionStorage.clear();
     window.location.href = 'auth.html';
   }
 

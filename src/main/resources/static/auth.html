@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cinema — Logowanie</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -266,6 +267,27 @@
 <script>
     const API = 'http://localhost:8080/api';
 
+    const _t = sessionStorage.getItem('token');
+    const _r = sessionStorage.getItem('role');
+    if (_t) {
+        window.location.href = _r === 'ADMIN' ? 'admin.html' : 'index.html';
+    }
+
+
+    window.__auth = window.__auth || {
+        token: null,
+        set(data) {
+            this.token = data.token;
+            sessionStorage.setItem('username', data.username);
+            sessionStorage.setItem('role', data.role);
+        },
+        clear() {
+            this.token = null;
+            sessionStorage.clear();
+        }
+    };
+
+
     function showLogin() {
         document.getElementById('loginPanel').classList.add('active');
         document.getElementById('registerPanel').classList.remove('active');
@@ -300,7 +322,6 @@
         const el = document.getElementById(id);
         el.textContent = message;
         el.classList.add('show');
-        // Podświetl input
         const input = el.previousElementSibling;
         if (input && input.tagName === 'INPUT') input.classList.add('invalid');
     }
@@ -311,13 +332,11 @@
         btn.textContent = loading ? '...' : text;
     }
 
-
     async function handleLogin() {
         clearErrors();
         const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        // Walidacja
         let valid = true;
         if (!username) { showFieldError('loginUsernameErr', 'Podaj nazwę użytkownika'); valid = false; }
         if (!password) { showFieldError('loginPasswordErr', 'Podaj hasło'); valid = false; }
@@ -338,12 +357,10 @@
             }
 
             const data = await res.json();
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('role', data.role);
-
+            sessionStorage.setItem('token',    data.token);
+            sessionStorage.setItem('username', data.username);
+            sessionStorage.setItem('role',     data.role);
             window.location.href = data.role === 'ADMIN' ? 'admin.html' : 'index.html';
-
         } catch {
             showAlert('loginAlert', 'Błąd połączenia z serwerem');
         } finally {
@@ -358,7 +375,6 @@
         const password = document.getElementById('regPassword').value;
         const confirm  = document.getElementById('regConfirm').value;
 
-        // Walidacja
         let valid = true;
         if (username.length < 3) { showFieldError('regUsernameErr', 'Minimum 3 znaki'); valid = false; }
         if (!email.includes('@')) { showFieldError('regEmailErr', 'Niepoprawny email'); valid = false; }
@@ -406,11 +422,6 @@
         if (loginActive) handleLogin();
         else handleRegister();
     });
-
-    // jeśli już zalogowany - przekieruj od razu
-    if (localStorage.getItem('token')) {
-        window.location.href = 'index.html';
-    }
 </script>
 </body>
 </html>

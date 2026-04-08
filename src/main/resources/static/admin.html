@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cinema — Panel Admina</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -284,18 +285,24 @@
 
 <script>
     const API   = 'http://localhost:8080/api';
-    const token = localStorage.getItem('token');
-    const role  = localStorage.getItem('role');
+    const token = sessionStorage.getItem('token');
+    const role  = sessionStorage.getItem('role');
 
-    if (!token || role !== 'ADMIN') window.location.href = 'index.html';
-    document.getElementById('navUsername').textContent = localStorage.getItem('username') || '';
+    if (!token || role !== 'ADMIN') {
+        sessionStorage.clear();
+        window.location.href = 'auth.html';
+    }
+
+    document.getElementById('navUsername').textContent = sessionStorage.getItem('username') || '';
 
     // ── Zmienne globalne do edycji ───────────────────────────────
     let loadedMovies = [];
     let currentEditMovieId = null;
 
-    // ── Helpers ──────────────────────────────────────────────────
-    const hdrs = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+    const hdrs = () => ({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    });
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -337,7 +344,7 @@
       <div class="list-item">
         <div>
           <div class="list-item-title">${escapeHtml(m.title)}</div>
-          <div class="list-item-sub">${m.durationMinutes} min · premiera: ${m.releaseDate || '—'}</div>
+          <div class="list-item-sub">${m.durationMinutes} min · premiera: ${escapeHtml(m.releaseDate) || '—'}</div>
         </div>
         <button class="btn-edit" onclick="openEditModal(${m.id})">Edytuj</button>
       </div>`).join('');
@@ -394,8 +401,6 @@
     }
 
     function closeEditModal(event) {
-        // Jeśli kliknięto z parametrem 'event' sprawdzamy, czy to tło.
-        // Jeśli nie ma eventu (bo kliknięto np. 'Anuluj') to po prostu zamykamy
         if (event) {
             if (!event.target.classList.contains('modal-overlay')) return;
         }
@@ -432,7 +437,7 @@
             }
 
             closeEditModal();
-            loadMovies(); // Odświeża listę na stronie, co również zaktualizuje zmienną "loadedMovies"
+            loadMovies();
         } finally {
             setLoading('editBtn', false);
         }
@@ -578,10 +583,12 @@
     function renderReservations(list) {
         const el = document.getElementById('reservationsList');
         if (!list.length) { el.innerHTML = '<p class="empty-list">Brak rezerwacji</p>'; return; }
-        const statusLabel = s => ({ PENDING:'Oczekuje', CONFIRMED:'Potwierdzona', CANCELLED:'Anulowana' }[s] || s);
+        const statusLabel = s => ({ PENDING:'Oczekuje', CONFIRMED:'Potwierdzona', CANCELLED:'Anulowana' }[s] || '—');
+        const VALID_STATUSES = ['PENDING', 'CONFIRMED', 'CANCELLED'];
         el.innerHTML = list.map(r => {
             const seats = r.seats?.map(s => `R${s.rowNumber}/M${s.seatNumber}`).join(', ') || '—';
             const time  = r.screeningTime ? new Date(r.screeningTime).toLocaleString('pl-PL',{dateStyle:'short',timeStyle:'short'}) : '—';
+            const safeStatus = VALID_STATUSES.includes(r.status) ? r.status : 'UNKNOWN';
             return `
         <div class="reservation-card">
           <div class="reservation-header">
@@ -589,7 +596,7 @@
               <div class="reservation-title">${escapeHtml(r.movieTitle || 'Seans #' + r.screeningId)}</div>
               <div class="reservation-meta">👤 ${escapeHtml(r.username)} · 🏛️ ${escapeHtml(r.hallName || '—')} · 🕐 ${time}</div>
             </div>
-            <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
+            <span class="status-badge status-${safeStatus}">${statusLabel(safeStatus)}</span>
           </div>
           <div class="reservation-footer">
             <span class="reservation-seats">Miejsca: ${escapeHtml(seats)}</span>
@@ -623,8 +630,10 @@
         loadReservations();
     }
 
-    function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
-
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'auth.html';
+    }
     loadMovies();
 </script>
 </body>

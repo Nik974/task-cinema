@@ -180,3 +180,14 @@ gradle-app.setting
 *.hprof
 
 .env
+/.idea/modules/Cinema.main.iml
+/.idea/modules/Cinema.test.iml
+/.idea/.gitignore
+/.idea/.name
+/.idea/compiler.xml
+/.idea/dataSources.xml
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/sqldialects.xml
+/.idea/vcs.xml

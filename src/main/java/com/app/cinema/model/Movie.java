@@ -3,6 +3,8 @@ package com.app.cinema.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+
 import java.time.LocalDate;
 import java.time.Duration;
 
@@ -13,6 +15,7 @@ import java.time.Duration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@BatchSize(size = 20)
 public class Movie {
 
     @Id

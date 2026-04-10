@@ -3,6 +3,7 @@ package com.app.cinema.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "reservation_seats", uniqueConstraints = {
@@ -13,6 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@BatchSize(size = 20)
 public class ReservationSeat {
 
     @Id

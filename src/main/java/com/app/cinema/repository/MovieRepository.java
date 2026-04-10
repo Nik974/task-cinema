@@ -11,7 +11,9 @@ import java.util.Optional;
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     List<Movie> findByTitleContainingIgnoreCase(String title);
+
     boolean existsByTitle(String title);
+
     Optional<Movie> findById(Long aLong);
 
     List<Movie> findAll();

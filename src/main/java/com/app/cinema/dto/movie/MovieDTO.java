@@ -19,7 +19,7 @@ public class MovieDTO {
     private Long id;
 
     @NotBlank
-    @Size(min = 1,max=100)
+    @Size(min = 1, max = 100)
     private String title;
 
     @Size(max = 200)

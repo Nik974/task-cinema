@@ -19,8 +19,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class SeatServiceTest {
 
-    @Mock private SeatRepository seatRepository;
-    @Mock private ReservationSeatRepository reservationSeatRepository;
+    @Mock
+    private SeatRepository seatRepository;
+    @Mock
+    private ReservationSeatRepository reservationSeatRepository;
 
     @InjectMocks
     private SeatService seatService;

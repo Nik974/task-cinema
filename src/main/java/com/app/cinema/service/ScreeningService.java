@@ -37,6 +37,7 @@ public class ScreeningService {
                 .price(screening.getPrice())
                 .build();
     }
+
     @Transactional
     public ScreeningDTO createScreening(CreateScreeningDTO createScreeningDTO) {
         Movie movie = movieRepository.findById(createScreeningDTO.getMovieId())

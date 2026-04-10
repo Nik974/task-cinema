@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateReservationDTO{
+public class CreateReservationDTO {
 
     @NotNull
     private Long screeningId;

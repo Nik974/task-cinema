@@ -26,6 +26,7 @@ public class SeatService {
                 .toList();
 
     }
+
     public List<SeatDTO> getTakenSeatsForScreening(Long screeningId) {
         return reservationSeatRepository
                 .findOccupiedSeatsForScreening(screeningId)
@@ -43,7 +44,6 @@ public class SeatService {
                 seat.getSeatNumber()
         );
     }
-
 
 
 }

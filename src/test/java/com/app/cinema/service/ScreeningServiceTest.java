@@ -30,8 +30,10 @@ class ScreeningServiceTest {
 
     @Mock
     private ScreeningRepository screeningRepository;
-    @Mock private MovieRepository movieRepository;
-    @Mock private HallRepository hallRepository;
+    @Mock
+    private MovieRepository movieRepository;
+    @Mock
+    private HallRepository hallRepository;
 
     @InjectMocks
     private ScreeningService screeningService;
@@ -41,7 +43,7 @@ class ScreeningServiceTest {
     private Screening screening;
 
     private static final LocalDateTime START = LocalDateTime.now().plusDays(1);
-    private static final LocalDateTime END   = LocalDateTime.now().plusDays(1).plusHours(2);
+    private static final LocalDateTime END = LocalDateTime.now().plusDays(1).plusHours(2);
 
     @BeforeEach
     void setUp() {
@@ -174,7 +176,6 @@ class ScreeningServiceTest {
 
         verify(screeningRepository, never()).save(any());
     }
-
 
 
 }

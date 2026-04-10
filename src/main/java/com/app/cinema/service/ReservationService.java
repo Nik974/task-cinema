@@ -100,6 +100,7 @@ public class ReservationService {
                 .seats(seats)
                 .build();
     }
+
     @Transactional
     public ReservationDTO createReservation(CreateReservationDTO request, User user) {
         Screening screening = screeningRepository.findById(request.getScreeningId())
@@ -143,6 +144,7 @@ public class ReservationService {
         saved.setReservationSeats(reservationSeats);
         return toDTO(saved);
     }
+
     @Transactional
     public ReservationDTO cancelByUser(Long id, User user) {
         Reservation reservation = reservationRepository.findById(id)

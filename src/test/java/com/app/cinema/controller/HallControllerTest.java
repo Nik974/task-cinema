@@ -193,7 +193,7 @@ class HallControllerTest {
         WebClientResponseException ex = postNoAuth("", request);
 
         assertThat(ex).isNotNull();
-        assertThat(ex.getStatusCode().value()).isEqualTo( 401);
+        assertThat(ex.getStatusCode().value()).isEqualTo(401);
     }
 
     @Test

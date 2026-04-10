@@ -36,18 +36,19 @@ public class HallService {
 
     }
 
-    public HallDTO getHallById(Long id){
-        Hall hall =hallRepository.findById(id)
-                .orElseThrow(()->new EntityNotFoundException("Hall o id"+id+"nie istnieje"));
-    return toDTO(hall);
-    }
-    public HallDTO getHallByName(String name){
-        Hall hall=hallRepository.findByNameIgnoreCase(name)
-                .orElseThrow(()->new EntityNotFoundException("Nie ma takiej sali"));
-       return toDTO(hall);
+    public HallDTO getHallById(Long id) {
+        Hall hall = hallRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Hall o id" + id + "nie istnieje"));
+        return toDTO(hall);
     }
 
-    public List<HallDTO> getAllHalls(){
+    public HallDTO getHallByName(String name) {
+        Hall hall = hallRepository.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new EntityNotFoundException("Nie ma takiej sali"));
+        return toDTO(hall);
+    }
+
+    public List<HallDTO> getAllHalls() {
         return hallRepository.findAll().stream().map(this::toDTO).toList();
     }
 

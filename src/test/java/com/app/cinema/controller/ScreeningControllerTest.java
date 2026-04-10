@@ -71,7 +71,7 @@ public class ScreeningControllerTest {
 
     private MovieDTO createTestMovie(String token) {
         CreateMovieDTO createMovieDTO = CreateMovieDTO.builder()
-                .title("Test Movie"+System.currentTimeMillis())
+                .title("Test Movie" + System.currentTimeMillis())
                 .description("test")
                 .durationMinutes(120)
                 .releaseDate(LocalDate.now())
@@ -90,7 +90,7 @@ public class ScreeningControllerTest {
     private HallDTO createTestHall(String token) {
 
         CreateHallDTO createHallDTO = CreateHallDTO.builder()
-                .name("Test Hall"+System.currentTimeMillis())
+                .name("Test Hall" + System.currentTimeMillis())
                 .rows(10)
                 .seatsPerRow(15)
                 .build();
@@ -103,6 +103,7 @@ public class ScreeningControllerTest {
                 .bodyToMono(HallDTO.class)
                 .block();
     }
+
     private WebClientResponseException getExpectError(String path) {
         try {
             webClient.get().uri(path)
@@ -184,6 +185,7 @@ public class ScreeningControllerTest {
 
         assertThat(postExpectError("/api/screenings", createScreeningDTO, token).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void createScreening_withNegativePrice_returns400() {
         String token = getAdminToken();
@@ -219,6 +221,7 @@ public class ScreeningControllerTest {
         WebClientResponseException error = postExpectError("/api/screenings", createScreeningDTO, token);
         assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void createScreening_withNonExistentMovieId_returns404() {
         String token = getAdminToken();
@@ -236,6 +239,7 @@ public class ScreeningControllerTest {
         assertThat(error).isNotNull();
         assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void createScreening_whenStartTimeEqualsEndTime_returns400() {
         String token = getAdminToken();

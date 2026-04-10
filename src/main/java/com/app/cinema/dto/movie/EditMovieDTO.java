@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Builder
 public class EditMovieDTO {
     @NotBlank
-    @Size(min = 1,max=100)
+    @Size(min = 1, max = 100)
     private String title;
 
     @Size(max = 200)

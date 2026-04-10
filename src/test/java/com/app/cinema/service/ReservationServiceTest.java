@@ -28,10 +28,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
 
-    @Mock private ReservationRepository reservationRepository;
-    @Mock private ReservationSeatRepository reservationSeatRepository;
-    @Mock private ScreeningRepository screeningRepository;
-    @Mock private SeatRepository seatRepository;
+    @Mock
+    private ReservationRepository reservationRepository;
+    @Mock
+    private ReservationSeatRepository reservationSeatRepository;
+    @Mock
+    private ScreeningRepository screeningRepository;
+    @Mock
+    private SeatRepository seatRepository;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -112,7 +116,7 @@ class ReservationServiceTest {
     @Test
     void createReservation_shouldCreateReservation() {
 
-        CreateReservationDTO request =  CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L, 11L)).build();
+        CreateReservationDTO request = CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L, 11L)).build();
 
 
         when(screeningRepository.findById(1L)).thenReturn(Optional.of(screening));
@@ -143,7 +147,6 @@ class ReservationServiceTest {
                 .build();
 
 
-
         when(screeningRepository.findById(99L)).thenReturn(Optional.empty());
 
 
@@ -157,7 +160,7 @@ class ReservationServiceTest {
     @Test
     void createReservation_withBookedSeat_throwsIllegalStateException() {
 
-        CreateReservationDTO request =  CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L)).build();
+        CreateReservationDTO request = CreateReservationDTO.builder().screeningId(1L).seatIds(List.of(10L)).build();
 
 
         ReservationSeat takenSeat = ReservationSeat.builder()

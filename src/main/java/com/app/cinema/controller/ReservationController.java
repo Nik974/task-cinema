@@ -57,6 +57,7 @@ public class ReservationController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(reservationService.getMyReservations(user.getId()));
     }
+
     @PostMapping
     public ResponseEntity<ReservationDTO> createReservation(
             @Valid @RequestBody CreateReservationDTO request,

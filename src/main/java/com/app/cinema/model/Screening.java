@@ -44,7 +44,7 @@ public class Screening {
     private LocalDateTime endTime;
 
     @DecimalMin("0.01")
-    @Column(name ="screening_price", nullable = false, precision = 8, scale = 2)
+    @Column(name = "screening_price", nullable = false, precision = 8, scale = 2)
     private BigDecimal price;
 
 }

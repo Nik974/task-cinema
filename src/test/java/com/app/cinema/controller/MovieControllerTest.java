@@ -49,6 +49,7 @@ class MovieControllerTest {
                 .retrieve().bodyToMono(AuthResponse.class).block();
         return response.getToken();
     }
+
     private String getUserToken() {
         String username = "user_" + System.currentTimeMillis();
         authClient.post().uri("/register")
@@ -223,15 +224,17 @@ class MovieControllerTest {
                 .anyMatch(m -> m.getTitle().equals("List-Test-Movie"));
         assertThat(containsOurMovie).isTrue();
     }
+
     @Test
     void getAllMovies_byUser_shouldReturn200() {
         String token = getUserToken();
 
-        MovieDTO[] movies= getArray("", token, MovieDTO[].class);
+        MovieDTO[] movies = getArray("", token, MovieDTO[].class);
         assertThat(movies).isNotNull();
 
 
     }
+
     @Test
     void editMovie_asAdmin_returns200AndUpdatedData() {
         String adminToken = getAdminToken();
@@ -260,6 +263,7 @@ class MovieControllerTest {
         assertThat(updatedMovie.getDurationMinutes()).isEqualTo(150);
         assertThat(updatedMovie.getReleaseDate()).isEqualTo(LocalDate.of(2025, 12, 31));
     }
+
     @Test
     void editMovie_asUser_returns403() {
         String userToken = getUserToken();

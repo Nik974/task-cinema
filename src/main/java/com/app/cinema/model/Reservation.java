@@ -35,7 +35,7 @@ public class Reservation {
     private Screening screening;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reservation_status",nullable = false, length = 20)
+    @Column(name = "reservation_status", nullable = false, length = 20)
     @Builder.Default
     private ReservationStatus status = ReservationStatus.PENDING;
 

@@ -107,15 +107,15 @@ class MovieServiceTest {
                 .title("Test-Name-1")
                 .description("Test-Descr")
                 .durationMinutes(56)
-                .releaseDate(LocalDate.of(2002, 2,3))
+                .releaseDate(LocalDate.of(2002, 2, 3))
                 .build();
 
-        Movie savedMovie =Movie.builder()
+        Movie savedMovie = Movie.builder()
                 .id(1L)
                 .title("Test-Name-1")
                 .description("Test-Desc")
                 .durationMinutes(56)
-                .releaseDate(LocalDate.of(2002,2,3))
+                .releaseDate(LocalDate.of(2002, 2, 3))
                 .build();
 
 
@@ -125,7 +125,7 @@ class MovieServiceTest {
         MovieDTO result = movieService.addNewMovie(createMovieDTO);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2002,2,3));
+        assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2002, 2, 3));
         assertThat(result.getTitle()).isEqualTo("Test-Name-1");
         assertThat(result.getDescription()).isEqualTo("Test-Desc");
         assertThat(result.getDurationMinutes()).isEqualTo(56);
@@ -136,18 +136,18 @@ class MovieServiceTest {
     }
 
     @Test
-    void addNewMovie_ShouldThrowException(){
+    void addNewMovie_ShouldThrowException() {
         CreateMovieDTO createMovieDTO = CreateMovieDTO.builder()
                 .title("Test-Name-1")
                 .description("Test-Descr")
                 .durationMinutes(56)
-                .releaseDate(LocalDate.of(2003, 3,3))
+                .releaseDate(LocalDate.of(2003, 3, 3))
                 .build();
 
 
         when(movieRepository.existsByTitle("Test-Name-1")).thenReturn(true);
 
-        assertThatThrownBy(()->movieService.addNewMovie(createMovieDTO))
+        assertThatThrownBy(() -> movieService.addNewMovie(createMovieDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Film o takim tytule już istnieje!");
 
@@ -175,12 +175,12 @@ class MovieServiceTest {
         when(movieRepository.findById(1L)).thenReturn(Optional.of(movie1));
         when(movieRepository.save(movie1)).thenReturn(updatedMovie);
 
-        MovieDTO result = movieService.editMovie(1L,editMovieDTO);
+        MovieDTO result = movieService.editMovie(1L, editMovieDTO);
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getDescription()).isEqualTo("edited-description");
         assertThat(result.getTitle()).isEqualTo("Test-Name-1-edited");
-        assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2000,1,1));
+        assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2000, 1, 1));
         assertThat(result.getDurationMinutes()).isEqualTo(50);
 
         verify(movieRepository).findById(1L);

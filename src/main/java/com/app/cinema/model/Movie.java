@@ -27,7 +27,7 @@ public class Movie {
     @Column(name = "movie_title", nullable = false)
     private String title;
 
-    @Column(name = "movie_description",length = 200)
+    @Column(name = "movie_description", length = 200)
     private String description;
 
     @NotNull

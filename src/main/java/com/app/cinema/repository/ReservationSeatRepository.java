@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ReservationSeatRepository extends JpaRepository<ReservationSeat,Long> {
+public interface ReservationSeatRepository extends JpaRepository<ReservationSeat, Long> {
 
     // zajęte miejsca na konkretny seans
     @Query("""

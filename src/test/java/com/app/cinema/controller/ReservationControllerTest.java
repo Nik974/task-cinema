@@ -1,4 +1,5 @@
 package com.app.cinema.controller;
+
 import com.app.cinema.dto.auth.AuthResponse;
 import com.app.cinema.dto.auth.LoginRequest;
 import com.app.cinema.dto.auth.RegisterRequest;
@@ -63,6 +64,7 @@ public class ReservationControllerTest {
                 .retrieve().bodyToMono(AuthResponse.class).block();
         return response.getToken();
     }
+
     private WebClientResponseException getExpectError(String path, String token) {
         try {
             webClient.get().uri(path)
@@ -76,6 +78,7 @@ public class ReservationControllerTest {
             return e;
         }
     }
+
     private String getUserToken() {
         String username = "user_" + System.currentTimeMillis();
         authClient.post().uri("/register")
@@ -88,6 +91,7 @@ public class ReservationControllerTest {
                 .retrieve().bodyToMono(AuthResponse.class).block();
         return response.getToken();
     }
+
     private <T> T put(String path, Object body, String token, Class<T> type) {
         return webClient.put().uri(path)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -95,13 +99,14 @@ public class ReservationControllerTest {
                 .bodyValue(body)
                 .retrieve().bodyToMono(type).block();
     }
+
     private <T> T get(String path, String token, Class<T> type) {
         return webClient.get().uri(path)
                 .header("Authorization", "Bearer " + token)
                 .retrieve().bodyToMono(type).block();
     }
 
-    private ScreeningDTO createTestScreening(String token){
+    private ScreeningDTO createTestScreening(String token) {
         MovieDTO TestMovie = createTestMovie(token);
         HallDTO TestHall = createTestHall(token);
 
@@ -124,7 +129,7 @@ public class ReservationControllerTest {
 
     private MovieDTO createTestMovie(String token) {
         CreateMovieDTO createMovieDTO = CreateMovieDTO.builder()
-                .title("Test Movie"+System.currentTimeMillis())
+                .title("Test Movie" + System.currentTimeMillis())
                 .description("test")
                 .durationMinutes(120)
                 .releaseDate(LocalDate.now())
@@ -143,7 +148,7 @@ public class ReservationControllerTest {
     private HallDTO createTestHall(String token) {
 
         CreateHallDTO createHallDTO = CreateHallDTO.builder()
-                .name("Test Hall"+System.currentTimeMillis())
+                .name("Test Hall" + System.currentTimeMillis())
                 .rows(10)
                 .seatsPerRow(15)
                 .build();
@@ -156,6 +161,7 @@ public class ReservationControllerTest {
                 .bodyToMono(HallDTO.class)
                 .block();
     }
+
     private WebClientResponseException getExpectError(String path) {
         try {
             webClient.get().uri(path)
@@ -225,12 +231,13 @@ public class ReservationControllerTest {
                 .seatIds(seatsToBook)
                 .build();
 
-            ReservationDTO response = post("/api/reservations", request, userToken, ReservationDTO.class);
+        ReservationDTO response = post("/api/reservations", request, userToken, ReservationDTO.class);
 
-            assertThat(response).isNotNull();
-            assertThat(response.getId()).isNotNull();
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isNotNull();
 
     }
+
     @Test
     public void createReservation_withNullScreeningId_returns400() {
         String userToken = getUserToken();
@@ -264,6 +271,7 @@ public class ReservationControllerTest {
 
         assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void cancelReservation_byOwner_changesStatusToCancelled() {
         String adminToken = getAdminToken();
@@ -286,6 +294,7 @@ public class ReservationControllerTest {
         assertThat(cancelled).isNotNull();
         assertThat(cancelled.getStatus().name()).isEqualTo("CANCELLED");
     }
+
     @Test
     public void getMyReservations_returnsList() {
         String adminToken = getAdminToken();
@@ -308,6 +317,7 @@ public class ReservationControllerTest {
         assertThat(myReservations.length).isGreaterThan(0);
         assertThat(myReservations[0].getScreeningId()).isEqualTo(screening.getId());
     }
+
     @Test
     public void getAllReservations_byNormalUser_returns403() {
         String userToken = getUserToken();
@@ -318,6 +328,7 @@ public class ReservationControllerTest {
 
         assertThat(error.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+
     @Test
     public void confirmReservation_byAdmin_changesStatusToConfirmed() {
         String adminToken = getAdminToken();
@@ -339,6 +350,7 @@ public class ReservationControllerTest {
         assertThat(confirmed).isNotNull();
         assertThat(confirmed.getStatus().name()).isEqualTo("CONFIRMED");
     }
+
     @Test
     public void confirmReservation_byNormalUser_returns403() {
         String adminToken = getAdminToken();
@@ -360,6 +372,7 @@ public class ReservationControllerTest {
 
         assertThat(error.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+
     @Test
     public void cancelReservation_byAdmin_changesStatusToCancelled() {
         String adminToken = getAdminToken();
@@ -381,6 +394,7 @@ public class ReservationControllerTest {
         assertThat(cancelled).isNotNull();
         assertThat(cancelled.getStatus().name()).isEqualTo("CANCELLED");
     }
+
     @Test
     public void cancelReservation_byDifferentUser_returns403() {
         String adminToken = getAdminToken();

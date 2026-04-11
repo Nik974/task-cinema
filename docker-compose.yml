@@ -1,7 +1,7 @@
 services:
   db:
-    image: postgres:18
-    container_name: cinema-container
+    image: postgres:17
+    container_name: cinema-db
     environment:
       POSTGRES_DB: cinema-db
       POSTGRES_USER: ${DB_USER}
@@ -9,7 +9,25 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d cinema-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: cinema-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cinema-db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
